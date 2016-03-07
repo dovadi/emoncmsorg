@@ -57,7 +57,7 @@ var processlist_ui =
                 if (this.processlist[processid][1]==2) {
                     var feedid = this.variableprocesslist[z][1];
                     if (processlist_ui.feedlist[feedid]!=undefined) {
-                        arg += "<a class='label label-info' href='"+path+"vis/auto?feedid="+feedid+"'>";
+                        arg += "<a class='label label-info' href='"+path+"graph/"+feedid+"'>";
                         if (processlist_ui.feedlist[feedid].tag) arg += processlist_ui.feedlist[feedid].tag+": ";
                         arg += processlist_ui.feedlist[feedid].name;
                         arg += "</a>";
@@ -424,7 +424,7 @@ var processlist_ui =
         }
 
         if (type == 'feed: ') { 
-          out += "<a href='"+path+"vis/auto?feedid="+value+"'<span class='label label-"+color+"' title='"+type+value+"' style='cursor:pointer'>"+key+"</span></a> "; 
+          out += "<a href='"+path+"graph/"+value+"'<span class='label label-"+color+"' title='"+type+value+"' style='cursor:pointer'>"+key+"</span></a> "; 
         } else {
           out += "<span class='label label-"+color+"' title='"+type+value+"' style='cursor:default'>"+key+"</span> ";
         }
