@@ -204,7 +204,7 @@ var customtablefields = {
             }
 
             if (type == 'feed: ') { 
-              out += "<a target='_blank' href='"+path+"vis/auto?feedid="+value+"'<span class='label label-"+color+"' title='"+type+value+"' style='cursor:pointer'>"+key+"</span></a> "; 
+              out += "<a target='_blank' href='"+path+"graph/"+value+"'<span class='label label-"+color+"' title='"+type+value+"' style='cursor:pointer'>"+key+"</span></a> "; 
             } else {
               out += "<span class='label label-"+color+"' title='"+type+value+"' style='cursor:default'>"+key+"</span> ";
             }
