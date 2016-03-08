@@ -146,18 +146,16 @@ var processlist_ui =
                     
                 }
                 arg = feedid;
-
-
             }
             
+            var result = input.add_process(processlist_ui.inputid,processid,arg);
+            if (!result.success) {
+                alert('ERROR: '+result.message);
+                return false;
+            }
             processlist_ui.variableprocesslist.push([processid,""+arg]);
             processlist_ui.draw();
-            
-            input.add_process(processlist_ui.inputid,processid,arg);
-            
             update_main_list(processlist_ui.inputid, processlist_ui.variableprocesslist);
-            
-
         });
         
         $('#processlist-ui #process-select').change(function() {
