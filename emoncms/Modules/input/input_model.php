@@ -171,6 +171,14 @@ class Input
         $processtype = $process[1];                                       // Array position 1 is the processtype: VALUE, INPUT, FEED
         $datatype = $process[4];                                          // Array position 4 is the datatype
         
+        if (!$process) {
+            return array('success'=>false, 'message'=>'This process does not exist');
+        }
+        
+        if (isset($process[5]) && $process[5]=="Deleted") {
+            return array('success'=>false, 'message'=>'This process is not supported on this server');
+        }
+        
         switch ($processtype) {
             case ProcessArg::VALUE:                                       // If arg type value
                 if ($arg == '') return array('success'=>false, 'message'=>'Argument must be a valid number greater or less than 0.');
@@ -193,6 +201,17 @@ class Input
         }
 
         $list = $this->get_processlist($inputid);
+        
+        // check to see if feed is already being written too
+        $listarray = explode(",",$list);
+        foreach ($listarray as $item) {
+            $keyval = explode(":",$item);
+            $tmp = $process_class->get_process((int)$keyval[0]);
+            if ($tmp[1]==ProcessArg::FEEDID && $keyval[1]==$arg) {
+                return array('success'=>false, 'message'=>'Feed is already being written to, select create new');
+            }
+        }
+        
         if ($list) $list .= ',';
         $list .= $processid . ':' . $arg;
         $this->set_processlist($inputid, $list);
