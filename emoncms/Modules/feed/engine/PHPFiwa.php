@@ -954,8 +954,10 @@ class PHPFiwa
                 $timestamp = $start_time_avl + ($meta->interval[$layer] * ($startpos+$i-1));
                 $average = $point_sum / $points_in_sum;
                 //$data[] = array($timestamp*1000,$average);
-                
-                fwrite($exportfh, $timestamp.",".number_format($average,2,'.','')."\n");
+
+                if (!is_nan($average)) {
+                    fwrite($exportfh, $timestamp.",".number_format($average,2,'.','')."\n");
+                }
             }
         }
         
