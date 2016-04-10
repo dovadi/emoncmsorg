@@ -322,6 +322,18 @@ class User
 
                 //------------------------------------------------------------------------------
                 global $enable_password_reset;
+                
+                if ($enable_password_reset==true)
+                {
+                    global $smtp_email_settings;
+                    $this->redis->rpush("emailqueue",json_encode(array(
+                        "emailto"=>$emailto,
+                        "type"=>"passwordrecovery",
+                        "subject"=>'Emoncms password reset',
+                        "message"=>"<p>A password reset was requested for your emoncms account.</p><p>Your can now login with password: $newpass </p>"
+                    )));
+                }
+                /*
                 if ($enable_password_reset==true)
                 {
                     global $smtp_email_settings;
@@ -353,6 +365,8 @@ class User
                 //------------------------------------------------------------------------------
 
                 // Sent email with $newpass to $email
+                return array('success'=>true, 'message'=>"Password recovery email sent!");
+                */
                 return array('success'=>true, 'message'=>"Password recovery email sent!");
             }
         }
