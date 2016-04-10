@@ -1,6 +1,7 @@
 <?php
 
-// This links with a phpfina remote storage server
+// This timeseries engine implements:
+// Fixed Interval No Averaging
 
 class RemotePHPFina
 {
@@ -33,6 +34,21 @@ class RemotePHPFina
     {
         $out = "";
         if ($source = @fopen($this->path."datanew?id=".$id."&start=".$start."&end=".$end."&interval=".$interval."&skipmissing=".$skipmissing."&limitinterval=".$limitinterval,'r'))
+        {
+            for (;;)
+            {
+                $out .= fread($source,8192);
+                if (feof($source)) break;
+            }
+        }
+    
+        return json_decode($out);
+    }
+    
+    public function get_data_DMY($id,$start,$end,$mode,$timezone)
+    {
+        $out = "";
+        if ($source = @fopen($this->path."dataDMY?id=".$id."&start=".$start."&end=".$end."&mode=".$mode."&timezone=".$timezone,'r'))
         {
             for (;;)
             {
