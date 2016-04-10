@@ -75,9 +75,9 @@ option.select-hr { border-bottom: 1px dotted #000; }
 
                         <span class="add-on feed-engine-label">Feed engine: </span>
                         <select id="feed-engine">
-                            <option value=5 >Fixed Interval No Averaging (PHPFINA) - default</option>
-                            <option value=6 >Fixed Interval With Averaging (PHPFIWA)</option>
-                            <option value=2 >Variable Interval No Averaging (PHPTIMESERIES)</option>
+                            <option value=5 >Fixed Interval (PHPFINA) - recommended, match interval with post rate</option>
+                            <!--<option value=6 >Fixed Interval With Averaging (PHPFIWA)</option>-->
+                            <option value=2 >Variable Interval (PHPTIMESERIES) - for infrequent, irregular data</option>
                         </select>
 
 
@@ -92,6 +92,7 @@ option.select-hr { border-bottom: 1px dotted #000; }
                             <option value=120>2 mins</option>
                             <option value=300>5 mins</option>
                             <option value=600>10 mins</option>
+                            <option value=900>15 mins</option>
                             <option value=1200>20 mins</option>
                             <option value=1800>30 mins</option>
                             <option value=3600>1 hour</option>
