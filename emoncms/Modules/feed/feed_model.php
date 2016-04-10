@@ -57,9 +57,12 @@ class Feed
         $this->server[0][Engine::PHPFIWA] = new PHPFiwa($settings['phpfiwa']);
         
         $this->server[1] = array();
-        $this->server[1][Engine::PHPFINA] = new RemotePHPFina("http://localhost:8080/phpfina/"); // secured via stunnel SSL/TLS
-        $this->server[1][Engine::PHPFIWA] = new RemotePHPFiwa("http://localhost:8080/phpfiwa/"); // secured via stunnel SSL/TLS
-               
+        $this->server[1][Engine::PHPFINA] = new RemotePHPFina("http://localhost:8080/phpfina/");
+        $this->server[1][Engine::PHPFIWA] = new RemotePHPFiwa("http://localhost:8080/phpfiwa/");
+
+        $this->server[2] = array();
+        $this->server[2][Engine::PHPFINA] = new RemotePHPFina("http://localhost:8082/phpfina/");
+                       
         $this->histogram = new Histogram($mysqli);
         
         if (isset($settings['csvdownloadlimit_mb'])) {
@@ -71,14 +74,15 @@ class Feed
         }
     }
 
-    public function create($userid,$name,$datatype,$engine,$options_in)
-    {
-        $server = 0;
-        
+    public function create($userid,$name,$datatype,$engine,$options_in,$server)
+    {   
         $userid = (int) $userid;
         $name = preg_replace('/[^\w\s-:]/','',$name);
         $datatype = (int) $datatype;
         $engine = (int) $engine;
+        
+        $server = (int) $server;
+        if ($server<0 || $server>2) return array('success'=>false, 'message'=>'server must be 0, 1 or 2');
         
         if ($datatype!=1 && $datatype!=2) return array('success'=>false, 'message'=>'missing datatype: 1: realtime, 2: daily');
         if ($datatype==3) return array('success'=>false, 'message'=>'histogram feed type is not available');
@@ -87,6 +91,7 @@ class Feed
         if ($engine==1) return array('success'=>false, 'message'=>'timestore feed engine is not available');
         if ($engine==3) return array('success'=>false, 'message'=>'graphite feed engine is not available');
         if ($engine==4) return array('success'=>false, 'message'=>'phptimestore feed engine is not available');
+        if ($engine==6) return array('success'=>false, 'message'=>'PHPFiwa feed engine is not available');
         
         // If feed of given name by the user already exists
         $feedid = $this->get_id($userid,$name);
@@ -118,7 +123,7 @@ class Feed
             if ($datatype==DataType::HISTOGRAM) {
                 $engineresult = $this->histogram->create($feedid,$options);
             } else {
-                $engineresult = $this->server[0][$engine]->create($feedid,$options);
+                $engineresult = $this->server[$server][$engine]->create($feedid,$options);
             }
 
             if ($engineresult == false)
@@ -450,6 +455,25 @@ class Feed
         $engine = $this->get_engine($feedid);
         $server = $this->get_server($feedid);
         return $this->server[$server][$engine]->get_data_new($feedid,$start,$end,$outinterval,$skipmissing,$limitinterval);
+    }
+    
+    public function get_data_DMY($feedid,$start,$end,$mode,$timezone)
+    {
+        $feedid = (int) $feedid;
+        if ($end<=$start) return array('success'=>false, 'message'=>"Request end time before start time");
+        if (!$this->exist($feedid)) return array('success'=>false, 'message'=>'Feed does not exist');
+        $engine = $this->get_engine($feedid);
+        $server = $this->get_server($feedid);
+        if ($engine != Engine::PHPFINA && $engine != Engine::PHPTIMESERIES) return array('success'=>false, 'message'=>"This request is only supported by PHPFina AND PHPTimeseries");
+
+        // Call to engine get_data
+        global $session;
+        $userid = $session['userid'];
+        $result = $this->mysqli->query("SELECT timezone FROM users WHERE id = '$userid';");
+        $row = $result->fetch_object();
+        
+        $data = $this->server[$server][$engine]->get_data_DMY($feedid,$start,$end,$mode,$row->timezone);
+        return $data;
     }
     
     public function csv_export($feedid,$start,$end,$outinterval)
