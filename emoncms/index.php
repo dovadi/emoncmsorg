@@ -233,6 +233,11 @@
         header('Content-Type: text');
         print $output['content'];
     }
+    else if ($route->format == 'text/plain')
+    {
+        header('Content-Type: text/plain');
+        print $output['content'];
+    }
     else {
         header($_SERVER["SERVER_PROTOCOL"]." 406 Not Acceptable");
         print "URI not acceptable. Unknown format '".$route->format."'.";
