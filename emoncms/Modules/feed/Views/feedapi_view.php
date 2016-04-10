@@ -69,7 +69,7 @@
 		<a href="<?php echo $path; ?>feed/fetch.json?ids=1,2,3"><?php echo $path; ?>feed/fetch.json?ids=1,2,3</a>
 	</td></tr>
     <tr><td><?php echo _("Returns feed data");?></td><td>
-		<a href="<?php echo $path; ?>feed/data.json?id=0&start=UNIXTIME&end=UNIXTIME&interval=5"><?php echo $path; ?>feed/data.json?id=0&start=UNIXTIME&end=UNIXTIME&interval=5</a>
+		<a href="<?php echo $path; ?>feed/data.json?id=0&start=UNIXTIME_MILLISECONDS&end=UNIXTIME_MILLISECONDS&interval=5"><?php echo $path; ?>feed/data.json?id=0&start=UNIXTIME_MILLISECONDS&end=UNIXTIME_MILLISECONDS&interval=5</a>
 	</td></tr>
 </table>
 
@@ -81,14 +81,11 @@
     <tr><td>Update data point</td><td>
 		<a href="<?php echo $path; ?>feed/update.json?id=0&time=UNIXTIME&value=100.0"><?php echo $path; ?>feed/update.json?id=0&time=UNIXTIME&value=100.0</a>
 	</td></tr>
-    <tr><td>Delete data point</td><td>
-		<a href="<?php echo $path; ?>feed/deletedatapoint.json?id=0&feedtime=UNIXTIME"><?php echo $path; ?>feed/deletedatapoint.json?id=0&feedtime=UNIXTIME</a>
-	</td></tr>
 </table>
 
 <p><b>Feed setup actions</b></p>
 <table class="table">
-	<tr><td>Create new feed, emoncms.org supported engines:<br>5:PHPFINA, 6:PHPFIWA, 2:PHPTIMESERIES</td><td>
+	<tr><td>Create new feed, emoncms.org supported engines:<br>5:PHPFINA, 2:PHPTIMESERIES</td><td>
 		<a href='<?php echo $path; ?>feed/create.json?tag=Test&name=Power&datatype=1&engine=5&options={"interval":10}'><?php echo $path; ?>feed/create.json?tag=Test&name=Power&datatype=1&engine=5&options={"interval":10}</a>
 	</td></tr>
     <tr><td>Delete existent feed</td><td>
