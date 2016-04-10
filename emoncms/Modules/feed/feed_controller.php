@@ -42,7 +42,7 @@ function feed_controller()
         } elseif ($route->action == "getid" && $session['read']) {
             $result = $feed->get_id($session['userid'],get('name'));
         } elseif ($route->action == "create" && $session['write']) {
-            $result = $feed->create($session['userid'],get('name'),get('datatype'),get('engine'),json_decode(get('options')));
+            $result = $feed->create($session['userid'],get('name'),get('datatype'),get('engine'),json_decode(get('options')),0);
         } elseif ($route->action == "updatesize" && $session['write']) {
             $result = $feed->update_user_feeds_size($session['userid']);
         } else {
@@ -60,10 +60,8 @@ function feed_controller()
                     if ($route->action == "timevalue") $result = $feed->get_timevalue_seconds($feedid);
                     if ($route->action == "get") $result = $feed->get_field($feedid,get('field')); // '/[^\w\s-]/'
                     if ($route->action == "aget") $result = $feed->get($feedid);
-
-                    if ($route->action == 'histogram') $result = $feed->histogram_get_power_vs_kwh($feedid,get('start'),get('end'));
-                    if ($route->action == 'kwhatpower') $result = $feed->histogram_get_kwhd_atpower($feedid,get('min'),get('max'));
-                    if ($route->action == 'kwhatpowers') $result = $feed->histogram_get_kwhd_atpowers($feedid,get('points'));
+                    
+                    if ($route->action == "getmeta") $result = $feed->get_meta($feedid);
                     
                     if ($route->action == 'datanew' || $route->action == 'data') {
                         $skipmissing = 1;
@@ -72,7 +70,12 @@ function feed_controller()
                         if (isset($_GET['limitinterval']) && $_GET['limitinterval']==0) $limitinterval = 0;
                         $interval = get('interval');
                         if (isset($_GET['dp'])) $interval = (int)(((get('end') - get('start')) / ((int)$_GET['dp']))*0.001);
-                        $result = $feed->get_data($feedid,get('start'),get('end'),$interval,$skipmissing,$limitinterval);
+                        
+                        if (isset($_GET['interval'])) {
+                            $result = $feed->get_data($feedid,get('start'),get('end'),get('interval'),$skipmissing,$limitinterval);
+                        } else if (isset($_GET['mode'])) {
+                            $result = $feed->get_data_DMY($feedid,get('start'),get('end'),get('mode'),get('timezone'));
+                        }
                     }
                 }
 
@@ -87,15 +90,11 @@ function feed_controller()
                         $result = $feed->update_data($feedid,$updatetime,get("time"),get('value'));
                     }
                     if ($route->action == "delete") $result = $feed->delete($feedid);
-                    if ($route->action == "getmeta") $result = $feed->get_meta($feedid);
                     
                     if ($route->action == "csvexport") $feed->csv_export($feedid,get('start'),get('end'),get('interval'));
                     
-
                     if ($f['engine']==Engine::MYSQL) {
                         if ($route->action == "export") $result = $feed->mysqltimeseries_export($feedid,get('start'));
-                        if ($route->action == "deletedatapoint") $result = $feed->mysqltimeseries_delete_data_point($feedid,get('feedtime'));
-                        if ($route->action == "deletedatarange") $result = $feed->mysqltimeseries_delete_data_range($feedid,get('start'),get('end'));
                     } elseif ($f['engine']==Engine::PHPTIMESERIES)	{
                         if ($route->action == "export") $result = $feed->phptimeseries_export($feedid,get('start'));
                     } elseif ($f['engine']==Engine::PHPFIWA) {
