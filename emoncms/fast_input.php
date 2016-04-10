@@ -74,11 +74,14 @@ function fast_input_post($redis,$userid)
                 $str = json_encode($packet);
                 
                 $uid = intval($userid);
-                $redis->rpush('inputqueue:1',$str);
-                // or
-                // balance across multiple queue's
-                //  if ($uid>0 && $uid<6000) $redis->rpush('inputqueue:1',$str);
-                //  elseif ($uid>=6000 && $uid<12000) $redis->rpush('inputqueue:2',$str);
+                if ($uid<8000) {
+                    $redis->rpush('inputbuffer2',$str);
+                }
+                elseif ($uid>=8000 && $uid<11000) {
+                    $redis->rpush('inputbuffer',$str);
+                } else {
+                    $redis->rpush('inputbuffer3',$str);
+                }
             }
         }
         else
@@ -176,12 +179,14 @@ function fast_input_bulk($redis,$userid)
                         $str = json_encode($array);
 
                         $uid = intval($userid);
-                        $redis->rpush('inputqueue:1',$str);
-                        // or
-                        // balance across multiple queue's
-                        //  if ($uid>0 && $uid<6000) $redis->rpush('inputqueue:1',$str);
-                        //  elseif ($uid>=6000 && $uid<12000) $redis->rpush('inputqueue:2',$str);
-                        
+                        if ($uid<8000) {
+                            $redis->rpush('inputbuffer2',$str);
+                        }
+                        elseif ($uid>=8000 && $uid<11000) {
+                            $redis->rpush('inputbuffer',$str);
+                        } else {
+                            $redis->rpush('inputbuffer3',$str);
+                        }
                     } else { 
                         if (($post_time-$lasttime)<0) $droppednegative ++;
                         $dropped ++; 
