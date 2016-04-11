@@ -466,18 +466,15 @@ class Feed
         $server = $this->get_server($feedid);
         if ($engine != Engine::PHPFINA && $engine != Engine::PHPTIMESERIES) return array('success'=>false, 'message'=>"This request is only supported by PHPFina AND PHPTimeseries");
 
-        // Call to engine get_data
         global $session;
-        $userid = $session['userid'];
-        $result = $this->mysqli->query("SELECT timezone FROM users WHERE id = '$userid';");
-        $row = $result->fetch_object();
-        
-        $data = $this->server[$server][$engine]->get_data_DMY($feedid,$start,$end,$mode,$row->timezone);
+        $timezone = $this->get_user_timezone($session['userid']);
+        $data = $this->server[$server][$engine]->get_data_DMY($feedid,$start,$end,$mode,$timezone);
         return $data;
     }
     
     public function csv_export($feedid,$start,$end,$outinterval)
     {
+        $this->redis->incr("fiveseconds:exporthits");
         $feedid = (int) $feedid;
         if (!$this->exist($feedid)) return array('success'=>false, 'message'=>'Feed does not exist');
 
@@ -555,6 +552,7 @@ class Feed
     // MysqlTimeSeries specific functions that we need to make available to the controller
 
     public function mysqltimeseries_export($feedid,$start) {
+        $this->redis->incr("fiveseconds:exporthits");
         return $this->server[0][Engine::MYSQL]->export($feedid,$start);
     }
 
@@ -569,20 +567,24 @@ class Feed
     // Histogram specific functions that we need to make available to the controller
 
     public function histogram_get_power_vs_kwh($feedid,$start,$end) {
+        $this->redis->incr("fiveseconds:getdatahits");
         return $this->histogram->get_power_vs_kwh($feedid,$start,$end);
     }
 
     public function histogram_get_kwhd_atpower($feedid, $min, $max) {
+        $this->redis->incr("fiveseconds:getdatahits");
         return $this->histogram->get_kwhd_atpower($feedid, $min, $max);
     }
 
     public function histogram_get_kwhd_atpowers($feedid, $points) {
+        $this->redis->incr("fiveseconds:getdatahits");
         return $this->histogram->get_kwhd_atpowers($feedid, $points);
     }
 
     // PHPTimeSeries specific functions that we need to make available to the controller
 
     public function phptimeseries_export($feedid,$start) {
+        $this->redis->incr("fiveseconds:exporthits");
         $server = $this->get_server($feedid);
         return $this->server[$server][Engine::PHPTIMESERIES]->export($feedid,$start);
     }
@@ -663,6 +665,21 @@ class Feed
         ));
 
         return true;
+    }
+    
+    public function get_user_timezone($userid) 
+    {
+        $result = $this->mysqli->query("SELECT timezone FROM users WHERE id = '$userid';");
+        $row = $result->fetch_object();
+
+        $now = new DateTime();
+        try {
+            $now->setTimezone(new DateTimeZone($row->timezone));
+            $timezone = $row->timezone;
+        } catch (Exception $e) {
+            $timezone = "UTC";
+        }
+        return $timezone;
     }
 }
 
