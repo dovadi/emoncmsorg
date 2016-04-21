@@ -357,7 +357,7 @@ class User
                     $message = Swift_Message::newInstance()
                       ->setSubject('Emoncms password reset')
                       ->setFrom($smtp_email_settings['from'])
-                      ->setTo(array($email))
+                      ->setTo(array($emailto))
                       ->setBody("<p>A password reset was requested for your emoncms account.</p><p>Your can now login with password: $newpass </p>", 'text/html');
                     $result = $mailer->send($message);
                     $this->log->info("Sent ".$result." email(s)");

@@ -472,6 +472,20 @@ class Feed
         return $data;
     }
     
+    public function get_average($feedid,$start,$end,$outinterval)
+    {
+        $feedid = (int) $feedid;
+        if ($end<=$start) return array('success'=>false, 'message'=>"Request end time before start time");
+        if (!$this->exist($feedid)) return array('success'=>false, 'message'=>'Feed does not exist');
+        $engine = $this->get_engine($feedid);
+        $server = $this->get_server($feedid);
+        
+        if ($engine != Engine::PHPFINA) return array('success'=>false, 'message'=>"This request is only supported by PHPFina");
+        
+        $data = $this->server[$server][$engine]->get_average($feedid,$start,$end,$outinterval);
+        return $data;
+    }
+    
     public function csv_export($feedid,$start,$end,$outinterval)
     {
         $this->redis->incr("fiveseconds:exporthits");

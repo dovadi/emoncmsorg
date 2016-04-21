@@ -25,6 +25,7 @@ function feed_controller()
 
     if ($route->format == 'html')
     {
+        if ($route->action == "" && $session['write']) $result = view("Modules/feed/Views/feedlist_view.php",array());
         if ($route->action == "list" && $session['write']) $result = view("Modules/feed/Views/feedlist_view.php",array());
         if ($route->action == "api" && $session['write']) $result = view("Modules/feed/Views/feedapi_view.php",array());
     }
@@ -76,6 +77,10 @@ function feed_controller()
                         } else if (isset($_GET['mode'])) {
                             $result = $feed->get_data_DMY($feedid,get('start'),get('end'),get('mode'),get('timezone'));
                         }
+                    }
+                    
+                    if ($route->action == 'average') {
+                        $result = $feed->get_average($feedid,get('start'),get('end'),get('interval'));
                     }
                 }
 

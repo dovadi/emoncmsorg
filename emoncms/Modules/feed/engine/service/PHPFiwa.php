@@ -1,6 +1,7 @@
 <?php
 
-// This links with a PHPFiwa remote storage server
+// This timeseries engine implements:
+// Fixed Interval No Averaging
 
 class RemotePHPFiwa
 {

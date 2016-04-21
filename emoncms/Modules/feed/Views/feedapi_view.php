@@ -34,7 +34,7 @@
 </p>
 
 <h3><?php echo _("Html");?></h3>
-<p><a href="<?php echo $path; ?>feed/list"><?php echo $path; ?>feed/list</a> - <?php echo _("The feed list view");?></p>
+<p><a href="<?php echo $path; ?>feed"><?php echo $path; ?>feed</a> - <?php echo _("The feed list view");?></p>
 <p><a href="<?php echo $path; ?>feed/api"><?php echo $path; ?>feed/api</a> - <?php echo _("This page");?></p>
 
 <h3><?php echo _("JSON");?></h3>
@@ -68,9 +68,16 @@
     <tr><td><?php echo _("Last value for multiple feeds");?></td><td>
 		<a href="<?php echo $path; ?>feed/fetch.json?ids=1,2,3"><?php echo $path; ?>feed/fetch.json?ids=1,2,3</a>
 	</td></tr>
-    <tr><td><?php echo _("Returns feed data");?></td><td>
-		<a href="<?php echo $path; ?>feed/data.json?id=0&start=UNIXTIME_MILLISECONDS&end=UNIXTIME_MILLISECONDS&interval=5"><?php echo $path; ?>feed/data.json?id=0&start=UNIXTIME_MILLISECONDS&end=UNIXTIME_MILLISECONDS&interval=5</a>
-	</td></tr>
+    <tr><td><?php echo _("Returns feed data between start time and end time at the interval specified. If no data is present null values are returned.");?></td><td>
+    <a href="<?php echo $path; ?>feed/data.json?id=0&start=UNIXTIME_MILLISECONDS&end=UNIXTIME_MILLISECONDS&interval=10"><?php echo $path; ?>feed/data.json?id=0&start=UNIXTIME_MILLISECONDS&end=UNIXTIME_MILLISECONDS&interval=10</a>
+  </td></tr>
+    <tr><td><?php echo _("Returns feed data between start time and end time at the interval specified. Each datapoint is the average (mean) for the period starting at the datapoint timestamp.");?></td><td>
+    <a href="<?php echo $path; ?>feed/average.json?id=0&start=UNIXTIME_MILLISECONDS&end=UNIXTIME_MILLISECONDS&interval=3600"><?php echo $path; ?>feed/average.json?id=0&start=UNIXTIME_MILLISECONDS&end=UNIXTIME_MILLISECONDS&interval=3600</a>
+  </td></tr>
+
+    <tr><td><?php echo _("Returns feed datapoints at the start of each day aligned to user timezone set in the user profile. This is used by the bar graph and apps module to generate kWh per day from cumulative kWh data.");?></td><td>
+    <a href="<?php echo $path; ?>feed/data.json?id=0&start=UNIXTIME_MILLISECONDS&end=UNIXTIME_MILLISECONDS&mode=daily"><?php echo $path; ?>feed/data.json?id=0&start=UNIXTIME_MILLISECONDS&end=UNIXTIME_MILLISECONDS&<b>mode=daily</b></a>
+  </td></tr>
 </table>
 
 <p><b>Write feed data actions</b></p>

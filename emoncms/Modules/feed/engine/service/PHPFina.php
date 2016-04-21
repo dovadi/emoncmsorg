@@ -60,6 +60,21 @@ class RemotePHPFina
         return json_decode($out);
     }
     
+    public function get_average($id,$start,$end,$interval)
+    {
+        $out = "";
+        if ($source = @fopen($this->path."average?id=".$id."&start=".$start."&end=".$end."&interval=".$interval,'r'))
+        {
+            for (;;)
+            {
+                $out .= fread($source,8192);
+                if (feof($source)) break;
+            }
+        }
+    
+        return json_decode($out);
+    }
+    
     public function get_data($id,$start,$end,$interval)
     {
         $out = "";
