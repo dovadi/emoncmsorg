@@ -35,12 +35,14 @@ function feed_controller()
         // Public actions available on public feeds.
         if ($route->action == "list")
         {
+            $redis->incr("fiveseconds:getdatahits");
             if (!isset($_GET['userid']) && $session['read']) $result = $feed->get_user_feeds($session['userid']);
             if (isset($_GET['userid']) && $session['read'] && $_GET['userid'] == $session['userid']) $result = $feed->get_user_feeds($session['userid']);
             if (isset($_GET['userid']) && $session['read'] && $_GET['userid'] != $session['userid']) $result = $feed->get_user_public_feeds(get('userid'));
             if (isset($_GET['userid']) && !$session['read']) $result = $feed->get_user_public_feeds(get('userid'));
 
         } elseif ($route->action == "getid" && $session['read']) {
+            $redis->incr("fiveseconds:getdatahits");
             $result = $feed->get_id($session['userid'],get('name'));
         } elseif ($route->action == "create" && $session['write']) {
             $result = $feed->create($session['userid'],get('name'),get('datatype'),get('engine'),json_decode(get('options')),0);
@@ -68,6 +70,8 @@ function feed_controller()
                 // if public or belongs to user
                 if ($f['public'] || ($session['userid']>0 && $f['userid']==$session['userid'] && $session['read']))
                 {
+                    $redis->incr("fiveseconds:getdatahits");
+                    
                     if ($route->action == "value") $result = $feed->get_value($feedid);
                     if ($route->action == "timevalue") $result = $feed->get_timevalue_seconds($feedid);
                     if ($route->action == "get") $result = $feed->get_field($feedid,get('field')); // '/[^\w\s-]/'
