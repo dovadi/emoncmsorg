@@ -244,14 +244,14 @@ class User
 
         $result = $this->mysqli->query("SELECT id,password,admin,salt,language, apikey_write,apikey_read FROM users WHERE username = '$username'");
 
-        if ($result->num_rows < 1) return array('success'=>false, 'message'=>_("Incorrect authentication"));
+        if ($result->num_rows < 1) return array('success'=>false, 'message'=>_("Username does not exist"));
 
         $userData = $result->fetch_object();
         $hash = hash('sha256', $userData->salt . hash('sha256', $password));
 
         if ($hash != $userData->password)
         {
-            return array('success'=>false, 'message'=>_("Incorrect authentication"));
+            return array('success'=>false, 'message'=>_("Incorrect password"));
         }
         else
         {
