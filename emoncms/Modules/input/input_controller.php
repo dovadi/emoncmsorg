@@ -7,20 +7,6 @@
         Emoncms - open source energy visualisation
         Part of the OpenEnergyMonitor project:
         http://openenergymonitor.org
-        
-        - stats logging
-        - force valid (dont show errors)
-        
-        Exeptions:
-          if ($session['userid']==1333) $valid = true;
-          if ($session['userid']==1102) $valid = true;
-          if ($session['userid']==2472) $valid = true;
-          if ($session['userid']==1695) $valid = true;
-          
-        - commented format error json is not numberic
-        - commented Format error: csv value is not numeric
-        
-        - inputbuffer rather than buffer
     */
 
     // no direct access
@@ -176,7 +162,7 @@ function input_controller()
                             {
                                 $redis->set("limiter:$userid:$nodeid",$time);
                                 $str = json_encode($array);
-                                $redis->rpush('inputqueue:1',$str);
+                                $redis->rpush('inputbuffer4',$str);
                             } else { 
                                 if (($time-$lasttime)<0) $droppednegative ++;
                                 $dropped ++; 
@@ -275,7 +261,7 @@ function input_controller()
 
                     if (count($data)>0 && $valid) {
                         $str = json_encode($packet);
-                        $redis->rpush('inputqueue:1',$str);
+                        $redis->rpush('inputbuffer4',$str);
                     }
                 }
                 else
