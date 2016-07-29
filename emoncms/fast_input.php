@@ -1,7 +1,8 @@
 <?php
 
 function fast_input_post($redis,$userid)
-{   
+{    
+    $redis->incr("fiveseconds:inputhits");
     $valid = true; $error = "";
 
     $nodeid = 0;
@@ -69,18 +70,23 @@ function fast_input_post($redis,$userid)
                 'nodeid' => $nodeid,
                 'data'=>$data
             );
+            
+            $level1 = 9000;
+            $level2 = 12000;
+            $level3 = 15000;
 
             if (count($data)>0 && $valid) {
                 $str = json_encode($packet);
                 
                 $uid = intval($userid);
-                if ($uid<8000) {
-                    $redis->rpush('inputbuffer2',$str);
-                }
-                elseif ($uid>=8000 && $uid<11000) {
+                if ($uid<$level1) {
                     $redis->rpush('inputbuffer',$str);
-                } else {
+                } elseif ($uid>=$level1 && $uid<$level2) {
+                    $redis->rpush('inputbuffer2',$str);
+                } elseif ($uid>=$level2 && $uid<$level3) {
                     $redis->rpush('inputbuffer3',$str);
+                } else {
+                    $redis->rpush('inputbuffer4',$str);
                 }
             }
         }
@@ -99,6 +105,7 @@ function fast_input_post($redis,$userid)
 
 function fast_input_bulk($redis,$userid)
 {
+    $redis->incr("fiveseconds:inputhits");
     $valid = true;
     
     if (!isset($_GET['data']) && isset($_POST['data']))
@@ -178,14 +185,19 @@ function fast_input_bulk($redis,$userid)
                         $redis->set("limiter:$userid:$nodeid",$post_time);
                         $str = json_encode($array);
 
+                        $level1 = 9000;
+                        $level2 = 12000;
+                        $level3 = 15000;
+            
                         $uid = intval($userid);
-                        if ($uid<8000) {
-                            $redis->rpush('inputbuffer2',$str);
-                        }
-                        elseif ($uid>=8000 && $uid<11000) {
+                        if ($uid<$level1) {
                             $redis->rpush('inputbuffer',$str);
-                        } else {
+                        } elseif ($uid>=$level1 && $uid<$level2) {
+                            $redis->rpush('inputbuffer2',$str);
+                        } elseif ($uid>=$level2 && $uid<$level3) {
                             $redis->rpush('inputbuffer3',$str);
+                        } else {
+                            $redis->rpush('inputbuffer4',$str);
                         }
                     } else { 
                         if (($post_time-$lasttime)<0) $droppednegative ++;
