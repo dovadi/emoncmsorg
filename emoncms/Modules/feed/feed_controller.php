@@ -46,6 +46,17 @@ function feed_controller()
             $result = $feed->create($session['userid'],get('name'),get('datatype'),get('engine'),json_decode(get('options')),0);
         } elseif ($route->action == "updatesize" && $session['write']) {
             $result = $feed->update_user_feeds_size($session['userid']);
+        } elseif ($route->action == "fetch") {
+            $feedids = (array) (explode(",",(get('ids'))));
+            for ($i=0; $i<count($feedids); $i++) {
+                $feedid = (int) $feedids[$i];
+                if ($feed->exist($feedid)) {  // if the feed exists
+                   $f = $feed->get($feedid);
+                   if ($f['public'] || ($session['userid']>0 && $f['userid']==$session['userid'] && $session['read'])) {
+                       $result[$i] = 1*$feed->get_value($feedid); // null is a valid response
+                   } else { $result[$i] = false; }
+                } else { $result[$i] = false; } // false means feed not found
+            }
         } else {
             $feedid = (int) get('id');
             // Actions that operate on a single existing feed that all use the feedid to select:
@@ -75,12 +86,16 @@ function feed_controller()
                         if (isset($_GET['interval'])) {
                             $result = $feed->get_data($feedid,get('start'),get('end'),get('interval'),$skipmissing,$limitinterval);
                         } else if (isset($_GET['mode'])) {
-                            $result = $feed->get_data_DMY($feedid,get('start'),get('end'),get('mode'),get('timezone'));
+                            $result = $feed->get_data_DMY($feedid,get('start'),get('end'),get('mode'));
                         }
                     }
                     
                     if ($route->action == 'average') {
-                        $result = $feed->get_average($feedid,get('start'),get('end'),get('interval'));
+                        if (isset($_GET['interval'])) {
+                            $result = $feed->get_average($feedid,get('start'),get('end'),get('interval'));
+                        } else if (isset($_GET['mode'])) {
+                            $result = $feed->get_average_DMY($feedid,get('start'),get('end'),get('mode'));
+                        }
                     }
                 }
 
