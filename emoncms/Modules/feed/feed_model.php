@@ -457,7 +457,7 @@ class Feed
         return $this->server[$server][$engine]->get_data_new($feedid,$start,$end,$outinterval,$skipmissing,$limitinterval);
     }
     
-    public function get_data_DMY($feedid,$start,$end,$mode,$timezone)
+    public function get_data_DMY($feedid,$start,$end,$mode)
     {
         $feedid = (int) $feedid;
         if ($end<=$start) return array('success'=>false, 'message'=>"Request end time before start time");
@@ -467,7 +467,8 @@ class Feed
         if ($engine != Engine::PHPFINA && $engine != Engine::PHPTIMESERIES) return array('success'=>false, 'message'=>"This request is only supported by PHPFina AND PHPTimeseries");
 
         global $session;
-        $timezone = $this->get_user_timezone($session['userid']);
+        $userid = $this->get_field($feedid,"userid");
+        $timezone = $this->get_user_timezone($userid);
         $data = $this->server[$server][$engine]->get_data_DMY($feedid,$start,$end,$mode,$timezone);
         return $data;
     }
@@ -483,6 +484,24 @@ class Feed
         if ($engine != Engine::PHPFINA) return array('success'=>false, 'message'=>"This request is only supported by PHPFina");
         
         $data = $this->server[$server][$engine]->get_average($feedid,$start,$end,$outinterval);
+        return $data;
+    }
+    
+    public function get_average_DMY($feedid,$start,$end,$mode)
+    {
+        $feedid = (int) $feedid;
+        if ($end<=$start) return array('success'=>false, 'message'=>"Request end time before start time");
+        if (!$this->exist($feedid)) return array('success'=>false, 'message'=>'Feed does not exist');
+        $engine = $this->get_engine($feedid);
+        $server = $this->get_server($feedid);
+        if ($engine!=Engine::PHPFINA) return array('success'=>false, 'message'=>"This request is only supported by PHPFina");
+
+        // Call to engine get_data
+        global $session;
+        $userid = $this->get_field($feedid,"userid");
+        $timezone = $this->get_user_timezone($userid);
+        
+        $data = $this->server[$server][$engine]->get_average_DMY($feedid,$start,$end,$mode,$timezone);
         return $data;
     }
     
