@@ -125,7 +125,7 @@ class Input
     }
 
     // USES: redis input
-    private function set_processlist($id, $processlist)
+    public function set_processlist($id, $processlist)
     {
         // CHECK REDIS
         if ($this->redis) $this->redis->hset("input:$id",'processList',$processlist);
