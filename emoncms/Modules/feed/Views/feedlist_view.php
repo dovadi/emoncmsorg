@@ -20,7 +20,7 @@ cursor:pointer
 
 <br>
 
-<div id="apihelphead"><div style="float:right;"><a href="api"><?php echo _('Feed API Help'); ?></a></div></div>
+<div id="apihelphead"><div style="float:right;"><a href="https://emoncms.org/site/api#feed"><?php echo _('Feed API Help'); ?></a></div></div>
 
 <div class="container">
         <div id="localheading"><h2><?php echo _('Feeds'); ?></h2></div>
