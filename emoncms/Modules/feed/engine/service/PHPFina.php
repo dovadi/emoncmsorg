@@ -75,6 +75,20 @@ class RemotePHPFina
         return json_decode($out);
     }
     
+    public function get_average_DMY($id,$start,$end,$mode,$timezone)
+    {
+        $out = "";
+        if ($source = @fopen($this->path."averageDMY?id=".$id."&start=".$start."&end=".$end."&mode=".$mode."&timezone=".$timezone,'r'))
+        {
+            for (;;)
+            {
+                $out .= fread($source,8192);
+                if (feof($source)) break;
+            }
+        }
+        return json_decode($out);
+    }
+    
     public function get_data($id,$start,$end,$interval)
     {
         $out = "";
