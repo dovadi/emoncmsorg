@@ -30,7 +30,11 @@
     if (isset($_GET['q']) && isset($_GET['apikey'])) {
         $apikey = $_GET['apikey'];
         
+        if ($_GET['q']=="emoncms/input/post.json") $_GET['q'] = "input/post.json";
+        if ($_GET['q']=="emoncms/input/bulk.json") $_GET['q'] = "input/bulk.json";
+        
         if ($_GET['q']=="input/post.json") {
+            // echo "ok"; die;
             if ($redis->exists("writeapikey:$apikey")) {
                 $userid = $redis->get("writeapikey:$apikey");
                 require "fast_input.php";
@@ -41,6 +45,7 @@
         }
         
         if ($_GET['q']=="input/bulk.json") {
+            // echo "ok"; die;
             if ($redis->exists("writeapikey:$apikey")) {
                 $userid = $redis->get("writeapikey:$apikey");
                 require "fast_input.php";
@@ -183,10 +188,10 @@
     if ($output['content'] == "" && (!isset($session['read']) || (isset($session['read']) && !$session['read']))) {
 
         if(!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == ""){
-            $route->controller = "user";
-            $route->action = "login";
-            $route->subaction = "";
-            $output = controller($route->controller);
+            $redis->incr("httpsredirects");
+            $redirect = "https://emoncms.org/user/login";
+            header("Location: $redirect");
+            die;
         } else {
             $route->controller = "user";
             $route->action = "login";
