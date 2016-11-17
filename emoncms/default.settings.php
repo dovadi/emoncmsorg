@@ -12,6 +12,9 @@
     $database = "";
 
     $redis_enabled = true;
+    $redis_server = "localhost";
+
+    $https_enable = true;
 
     $feed_settings = array(
         'phpfiwa'=>array(
@@ -24,7 +27,7 @@
             'datadir'=>'/var/lib/phptimeseries/'
         )
     );
-    
+
     // (OPTIONAL) Used by password reset feature
     $smtp_email_settings = array(
       'host'=>"",
@@ -35,7 +38,7 @@
     );
 
     $enable_password_reset = true;
-    
+
     // Checks for limiting garbage data?
     $max_node_id_limit = 32;
 

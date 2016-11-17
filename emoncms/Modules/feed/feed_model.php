@@ -19,7 +19,6 @@ class Feed
     private $mysqli;
     private $redis;
     public $engine;
-    private $histogram;
     private $csvdownloadlimit_mb = 10;
     private $log;
     
@@ -32,38 +31,27 @@ class Feed
         $this->log = new EmonLogger(__FILE__);
         
         // Load different storage engines
-        require "Modules/feed/engine/MysqlTimeSeries.php";
-        require "Modules/feed/engine/Histogram.php";
         require "Modules/feed/engine/PHPTimeSeries.php";
-        
-        // Development engines
         require "Modules/feed/engine/PHPFina.php";
-        require "Modules/feed/engine/PHPFiwa.php";
-        require "Modules/feed/engine/service/PHPFina.php";  
-        require "Modules/feed/engine/service/PHPFiwa.php"; 
+        require "Modules/feed/engine/service/PHPFina.php";
            
         // Backwards compatibility 
         if (!isset($settings)) $settings= array();
-        if (!isset($settings['phpfiwa'])) $settings['phpfiwa'] = array();
         if (!isset($settings['phpfina'])) $settings['phpfina'] = array();
         if (!isset($settings['phptimeseries'])) $settings['phptimeseries'] = array();
               
         // Load engine instances to engine array to make selection below easier
         $this->server = array();
         $this->server[0] = array();
-        $this->server[0][Engine::MYSQL] = new MysqlTimeSeries($mysqli);
         $this->server[0][Engine::PHPTIMESERIES] = new PHPTimeSeries($settings['phptimeseries']);
         $this->server[0][Engine::PHPFINA] = new PHPFina($settings['phpfina']);
-        $this->server[0][Engine::PHPFIWA] = new PHPFiwa($settings['phpfiwa']);
         
         $this->server[1] = array();
         $this->server[1][Engine::PHPFINA] = new RemotePHPFina("http://localhost:8080/phpfina/");
-        $this->server[1][Engine::PHPFIWA] = new RemotePHPFiwa("http://localhost:8080/phpfiwa/");
 
         $this->server[2] = array();
         $this->server[2][Engine::PHPFINA] = new RemotePHPFina("http://localhost:8082/phpfina/");
                        
-        $this->histogram = new Histogram($mysqli);
         
         if (isset($settings['csvdownloadlimit_mb'])) {
             $this->csvdownloadlimit_mb = $settings['csvdownloadlimit_mb']; 
@@ -382,11 +370,7 @@ class Feed
         $this->set_timevalue($feedid, $value, $updatetime);
         
         // Call to engine post method
-        if ($server==0) {
-            $this->server[$server][$engine]->post($feedid,$feedtime,$value);
-        } else {
-            $this->redis->rpush("feedpostqueue:$server","$feedid,$feedtime,$value,$engine,0");
-        }
+        $this->redis->rpush("feedpostqueue:$server","$feedid,$feedtime,$value,$engine,0");
 
         return $value;
     }
@@ -406,16 +390,9 @@ class Feed
         
         $this->set_timevalue($feedid, $value, $updatetime);
         
-        // Call to engine post method
-        if ($server==0) {
-            if ($engine==5 && $padding_mode=="join") $this->server[$server][$engine]->padding_mode = "join";
-            $this->server[$server][$engine]->post($feedid,$feedtime,$value);
-            if ($engine==5 && $padding_mode=="join") $this->server[$server][$engine]->padding_mode = "nan";
-        } else {
-            $pm = 0;
-            if ($padding_mode=="join") $pm = 1;
-            $this->redis->rpush("feedpostqueue:$server","$feedid,$feedtime,$value,$engine,$pm");
-        }
+        $pm = 0;
+        if ($padding_mode=="join") $pm = 1;
+        $this->redis->rpush("feedpostqueue:$server","$feedid,$feedtime,$value,$engine,$pm");
         
         return $value;
     }
@@ -434,11 +411,7 @@ class Feed
         $server = (int) $res['server']; $engine = $res['engine'];
         
         // Call to engine update method
-        if ($server==0) {
-            $value = $this->server[$server][$engine]->update($feedid,$feedtime,$value);
-        } else {
-            $this->redis->rpush("feedpostqueue:$server","$feedid,$feedtime,$value,$engine,0");
-        }
+        $this->redis->rpush("feedpostqueue:$server","$feedid,$feedtime,$value,$engine,0");
        
         // need to find a way to not update if value being updated is older than the last value
         // in the database, redis lastvalue is last update time rather than last datapoint time.
@@ -580,38 +553,6 @@ class Feed
         $engine = $this->get_engine($feedid);
         $server = $this->get_server($feedid);
         return $this->server[$server][$engine]->get_meta($feedid);
-    }
-    
-    // MysqlTimeSeries specific functions that we need to make available to the controller
-
-    public function mysqltimeseries_export($feedid,$start) {
-        $this->redis->incr("fiveseconds:exporthits");
-        return $this->server[0][Engine::MYSQL]->export($feedid,$start);
-    }
-
-    public function mysqltimeseries_delete_data_point($feedid,$time) {
-        return $this->server[0][Engine::MYSQL]->delete_data_point($feedid,$time);
-    }
-
-    public function mysqltimeseries_delete_data_range($feedid,$start,$end) {
-        return $this->server[0][Engine::MYSQL]->delete_data_range($feedid,$start,$end);
-    }
-
-    // Histogram specific functions that we need to make available to the controller
-
-    public function histogram_get_power_vs_kwh($feedid,$start,$end) {
-        $this->redis->incr("fiveseconds:getdatahits");
-        return $this->histogram->get_power_vs_kwh($feedid,$start,$end);
-    }
-
-    public function histogram_get_kwhd_atpower($feedid, $min, $max) {
-        $this->redis->incr("fiveseconds:getdatahits");
-        return $this->histogram->get_kwhd_atpower($feedid, $min, $max);
-    }
-
-    public function histogram_get_kwhd_atpowers($feedid, $points) {
-        $this->redis->incr("fiveseconds:getdatahits");
-        return $this->histogram->get_kwhd_atpowers($feedid, $points);
     }
 
     // PHPTimeSeries specific functions that we need to make available to the controller

@@ -13,19 +13,14 @@
 // no direct access
 defined('EMONCMS_EXEC') or die('Restricted access');
 
-    global $path, $session, $redis;
-
-    $languages = get_available_languages();
-
-function languagecodetotext()
-{
-    _('es_ES');
-    _('fr_FR');
-}
+global $path, $session, $redis;
+$languages = array();
 
 ?>
 
 <script type="text/javascript" src="<?php echo $path; ?>Modules/user/profile/md5.js"></script>
+<script type="text/javascript" src="<?php echo $path; ?>Lib/misc/qrcode.js"></script>
+<script type="text/javascript" src="<?php echo $path; ?>Lib/misc/clipboard.js"></script>
 <script type="text/javascript" src="<?php echo $path; ?>Modules/user/user.js"></script>
 <script type="text/javascript" src="<?php echo $path; ?>Lib/listjs/list.js"></script>
 
@@ -81,75 +76,89 @@ function languagecodetotext()
         <br>
         <div id="account">
         <div class="account-item">
-            <span class="muted"><?php echo _('Write API Key'); ?></span>
+            <span class="muted"><?php echo _('Write API Key'); ?></span> <button class="btn btn-info" id="copyapiwritebtn">Copy API Key</button>
             <!--<a id="newapikeywrite" >new</a>-->
-            <span class="writeapikey"></span>
+            <span class="writeapikey" id="copyapiwrite"></span>
         </div>
         <div class="account-item">
-            <span class="muted"><?php echo _('Read API Key'); ?></span>
+            <span class="muted"><?php echo _('Read API Key'); ?></span> <button class="btn btn-info" id="copyapireadbtn">Copy API Key</button>
             <!--<a id="newapikeyread" >new</a>-->
-            <span class="readapikey"></span>
+            <span class="readapikey" id="copyapiread"></span>
+            <span id="msg"></span>
+        </div>
+        <div class="account-item">
+            <span class="muted"><?php echo _('App Integration QR Code'); ?></span>
+            <div id="qr_apikey"></div>
+            <br>
+	        <span class="muted">Scan this QR code from the <a href="https://play.google.com/store/apps/details?id=org.emoncms.myapps&utm_source=global_co&utm_medium=prtnr&utm_content=Mar2515&utm_campaign=PartBadge&pcampaignid=MKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1">
+	            Android App</a> for simplified setup, or scan using a barcode scanner on a mobile device to directly view your Emoncms MyElectric.</span>
+	        <br><br>
+	        <div style="width:150px"><a href="https://play.google.com/store/apps/details?id=org.emoncms.myapps&utm_source=global_co&utm_medium=prtnr&utm_content=Mar2515&utm_campaign=PartBadge&pcampaignid=MKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1">
+	            <img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" /></a></div>
         </div>
         </div>
-        
     </div>
-
     <div class="span8">
         <h3><?php echo _('My Profile'); ?></h3>
         <div id="table"></div>
-    
-    
-    <!--
-    
-    
-        <h3>Account use statistics</h3>
-        <p>Averaged over the last minute:</p>
-        <p>HTTP request rate: <span class="requestrate"></span> requests/s</p>
-        <p>Disk write rate: <span class="writerate"></span> writes/s</p>
-        <p>Discarded by input rate limiter: <span class="dropped"></span> inputs/s<div class="dropped-warning alert" style="display:none">individual inputs are being updated more often than once every 5 seconds and are being discarded, please slow the post rate of your monitoring equipment down.</div></p>
-        <p>Disk use: <span class="diskuse"></span> Mb</p>
-    
-    -->
     </div>
-
 </div>
 
 <script>
 
     var path = "<?php echo $path; ?>";
-    var lang = <?php echo json_encode($languages); ?>;
+    // var lang = <?php echo json_encode($languages); ?>;
 
     list.data = user.get();
 
     $(".writeapikey").html(list.data.apikey_write);
     $(".readapikey").html(list.data.apikey_read);
+
+    //QR COde Generation
+    var urlCleaned = window.location.href.replace("user/view" ,"");
+    var qrcode = new QRCode(document.getElementById("qr_apikey"), {
+        text: urlCleaned + "app?readkey=" + list.data.apikey_read  + "#myelectric",
+        width: 192,
+        height: 192,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+    }); //Re-designed on-board QR generation using javascript
     
     // Need to add an are you sure modal before enabling this.
     // $("#newapikeyread").click(function(){user.newapikeyread()});
     // $("#newapikeywrite").click(function(){user.newapikeywrite()});
     
-    var currentlanguage = list.data.language;
+    // Clipboard code
+    document.getElementById("copyapiwritebtn").addEventListener("click", function() {
+      copyToClipboardMsg(document.getElementById("copyapiwrite"), "msg");
+    });
+    document.getElementById("copyapireadbtn").addEventListener("click", function() {
+      copyToClipboardMsg(document.getElementById("copyapiread"), "msg");
+    });
+    
+    // var currentlanguage = list.data.language;
 
     list.fields = {
         'gravatar':{'title':"<?php echo _('Gravatar'); ?>", 'type':'gravatar'},
         'name':{'title':"<?php echo _('Name'); ?>", 'type':'text'},
         'location':{'title':"<?php echo _('Location'); ?>", 'type':'text'},
         'timezone':{'title':"<?php echo _('Timezone'); ?>", 'type':'timezone'},
-        'language':{'title':"<?php echo _('Language'); ?>", 'type':'select', 'options':lang},
+        // 'language':{'title':"<?php echo _('Language'); ?>", 'type':'select', 'options':lang},
         'bio':{'title':"<?php echo _('Bio'); ?>", 'type':'text'}
     }
     
     $.ajax({ url: path+"user/gettimezones.json", dataType: 'json', async: true, success: function(result) {
         list.timezones = result;
     }});
-
+    
     list.init();
 
     $("#table").bind("onSave", function(e){
         user.set(list.data);
 
         // refresh the page if the language has been changed.
-        if (list.data.language!=currentlanguage) window.location.href = path+"user/view";
+        // if (list.data.language!=currentlanguage) window.location.href = path+"user/view";
     });
 
     //------------------------------------------------------

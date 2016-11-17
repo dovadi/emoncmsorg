@@ -60,7 +60,7 @@ function fast_input_post($redis,$userid)
                 } 
                 else 
                 {
-                    $redis->incr("dropped:$userid");
+                    // $redis->incr("dropped:$userid");
                 }
             }
 
@@ -71,9 +71,9 @@ function fast_input_post($redis,$userid)
                 'data'=>$data
             );
             
-            $level1 = 9000;
+            $level1 = 8000;
             $level2 = 12000;
-            $level3 = 15000;
+            $level3 = 15800;
 
             if (count($data)>0 && $valid) {
                 $str = json_encode($packet);
@@ -185,9 +185,9 @@ function fast_input_bulk($redis,$userid)
                         $redis->set("limiter:$userid:$nodeid",$post_time);
                         $str = json_encode($array);
 
-                        $level1 = 9000;
+                        $level1 = 8000;
                         $level2 = 12000;
-                        $level3 = 15000;
+                        $level3 = 15800;
             
                         $uid = intval($userid);
                         if ($uid<$level1) {
@@ -202,7 +202,7 @@ function fast_input_bulk($redis,$userid)
                     } else { 
                         if (($post_time-$lasttime)<0) $droppednegative ++;
                         $dropped ++; 
-                        $redis->incr("dropped:$userid");
+                        // $redis->incr("dropped:$userid");
                     }
                 } else { $valid = false; $error = "Format error, bulk item needs at least 3 values"; }
             }

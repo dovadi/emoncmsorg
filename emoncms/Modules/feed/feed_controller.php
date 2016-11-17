@@ -73,13 +73,11 @@ function feed_controller()
                     $redis->incr("fiveseconds:getdatahits");
                     
                     if ($route->action == "value") $result = $feed->get_value($feedid);
-                    if ($route->action == "timevalue") $result = $feed->get_timevalue_seconds($feedid);
-                    if ($route->action == "get") $result = $feed->get_field($feedid,get('field')); // '/[^\w\s-]/'
-                    if ($route->action == "aget") $result = $feed->get($feedid);
-                    
-                    if ($route->action == "getmeta") $result = $feed->get_meta($feedid);
-                    
-                    if ($route->action == 'datanew' || $route->action == 'data') {
+                    else if ($route->action == "timevalue") $result = $feed->get_timevalue_seconds($feedid);
+                    else if ($route->action == "get") $result = $feed->get_field($feedid,get('field')); // '/[^\w\s-]/'
+                    else if ($route->action == "aget") $result = $feed->get($feedid);
+                    else if ($route->action == "getmeta") $result = $feed->get_meta($feedid);
+                    else if ($route->action == 'datanew' || $route->action == 'data') {
                         $skipmissing = 1;
                         $limitinterval = 1;
                         if (isset($_GET['skipmissing']) && $_GET['skipmissing']==0) $skipmissing = 0;
@@ -93,8 +91,7 @@ function feed_controller()
                             $result = $feed->get_data_DMY($feedid,get('start'),get('end'),get('mode'));
                         }
                     }
-                    
-                    if ($route->action == 'average') {
+                    else if ($route->action == 'average') {
                         if (isset($_GET['interval'])) {
                             $result = $feed->get_average($feedid,get('start'),get('end'),get('interval'));
                         } else if (isset($_GET['mode'])) {
@@ -108,23 +105,28 @@ function feed_controller()
                 {
                     // Storage engine agnostic
                     if ($route->action == 'set') $result = $feed->set_feed_fields($feedid,get('fields'));
-                    if ($route->action == "insert") $result = $feed->insert_data($feedid,time(),get("time"),get("value"));
-                    if ($route->action == "update") {
+                    
+                    else if ($route->action == "insert") {
+                        $redis->incr("fiveseconds:directfeedinsert");
+                        
+                        if (isset($_GET["join"]) && $_GET["join"]==1) {
+                            $result = $feed->insert_data_padding_mode($feedid,time(),get("time"),get("value"),"join");
+                        } else {
+                            $result = $feed->insert_data($feedid,time(),get("time"),get("value"));
+                        }
+                    }
+                    
+                    else if ($route->action == "update") {
                         if (isset($_GET['updatetime'])) $updatetime = get("updatetime"); else $updatetime = time();
                         $result = $feed->update_data($feedid,$updatetime,get("time"),get('value'));
                     }
-                    if ($route->action == "delete") $result = $feed->delete($feedid);
+                    else if ($route->action == "delete") $result = $feed->delete($feedid);
                     
-                    if ($route->action == "csvexport") $feed->csv_export($feedid,get('start'),get('end'),get('interval'));
+                    else if ($route->action == "csvexport") $feed->csv_export($feedid,get('start'),get('end'),get('interval'));
                     
-                    if ($f['engine']==Engine::MYSQL) {
-                        if ($route->action == "export") $result = $feed->mysqltimeseries_export($feedid,get('start'));
-                    } elseif ($f['engine']==Engine::PHPTIMESERIES)	{
-                        if ($route->action == "export") $result = $feed->phptimeseries_export($feedid,get('start'));
-                    } elseif ($f['engine']==Engine::PHPFIWA) {
-                        if ($route->action == "export") $result = $feed->phpfiwa_export($feedid,get('start'),get('layer'));
-                    } elseif ($f['engine']==Engine::PHPFINA) {
-                        if ($route->action == "export") $result = $feed->phpfina_export($feedid,get('start'));
+                    else if ($route->action == "export") {
+                        if ($f['engine']==Engine::PHPTIMESERIES) $result = $feed->phptimeseries_export($feedid,get('start'));
+                        elseif ($f['engine']==Engine::PHPFINA) $result = $feed->phpfina_export($feedid,get('start'));
                     }
                 }
             }

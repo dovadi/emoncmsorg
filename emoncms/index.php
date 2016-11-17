@@ -1,5 +1,5 @@
 <?php
-    
+
     /*
 
     All Emoncms code is released under the GNU Affero General Public License.
@@ -17,24 +17,46 @@
     $ltime = microtime(true);
 
     define('EMONCMS_EXEC', 1);
-    
-    $redis = new Redis();
-    $connected = $redis->connect("127.0.0.1");
-    $redis->incr('fiveseconds:totalhits');
 
-    if (!$connected) {
-        echo "Can't connect to redis database, it may be that redis-server is not installed or started see readme for redis installation"; die;
+    $apikey = false;
+    if (isset($_GET['apikey'])) {
+        $apikey = $_GET['apikey'];
+    } else if (isset($_POST['apikey'])) {
+        $apikey = $_POST['apikey'];
+    } else if (isset($_SERVER["HTTP_AUTHORIZATION"])) {
+        $apikey = str_replace('Bearer ', '', $_SERVER["HTTP_AUTHORIZATION"]);
     }
     
-    // Faster input pipeline
-    if (isset($_GET['q']) && isset($_GET['apikey'])) {
-        $apikey = $_GET['apikey'];
-        
+    
+    // UNCOMMENT TO PUT THE SITE OFFLINE!!!!!!!!!
+    /*
+    if ($apikey) {
+        // echo "ok"; die;
+    } else {
+        echo file_get_contents("offline.html");
+        die;
+    }*/
+    
+    
+    require "process_settings.php";
+    
+    // 1st try
+    $redisretry = 0;
+    $redis = new Redis();
+    $connected = $redis->connect("localhost");
+    if (!$connected) {
+        echo "Can't connect to redis database"; die;
+    }
+    $redis->incr('fiveseconds:totalhits');
+    // $redis->incr('retrycount',$redisretry);
+    
+    if (isset($_GET['q']) && $apikey!==false) {
+
         if ($_GET['q']=="emoncms/input/post.json") $_GET['q'] = "input/post.json";
         if ($_GET['q']=="emoncms/input/bulk.json") $_GET['q'] = "input/bulk.json";
-        
+
         if ($_GET['q']=="input/post.json") {
-            // echo "ok"; die;
+            //echo "ok"; die;
             if ($redis->exists("writeapikey:$apikey")) {
                 $userid = $redis->get("writeapikey:$apikey");
                 require "fast_input.php";
@@ -43,9 +65,9 @@
                 die;
             }
         }
-        
-        if ($_GET['q']=="input/bulk.json") {
-            // echo "ok"; die;
+
+        else if ($_GET['q']=="input/bulk.json") {
+            //echo "ok"; die;
             if ($redis->exists("writeapikey:$apikey")) {
                 $userid = $redis->get("writeapikey:$apikey");
                 require "fast_input.php";
@@ -54,31 +76,81 @@
                 die;
             }
         } 
-    }
-    /*
-    if ($_GET['q']=="" || $_GET['q']=="user/login") {
-        if(!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == ""){
-            $redis->incr("httpsredirects");
-            $redirect = "https://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
-            // header("HTTP/1.1 301 Moved Permanently");
-            header("Location: $redirect");
-            die;
+        
+        else if ($_GET['q']=="feed/list.json") {
+            //echo "ok"; die;
+            $userid = 0;
+            if ($redis->exists("writeapikey:$apikey")) { $userid = $redis->get("writeapikey:$apikey"); } 
+            else if ($redis->exists("readapikey:$apikey")) { $userid = $redis->get("readapikey:$apikey"); }
+            
+            if ($userid>0) {
+      
+                $feeds = array();
+                $feedids = $redis->sMembers("user:feeds:$userid");
+                foreach ($feedids as $id)
+                {
+                    $row = $redis->hGetAll("feed:$id");
+                    $lastvalue = $redis->hmget("feed:lastvalue:$id",array('time','value'));
+                    $row['time'] = strtotime($lastvalue['time']);
+                    $row['value'] = $lastvalue['value'];
+                    $feeds[] = $row;
+                }
+                header('Content-Type: application/json');
+                print json_encode($feeds);
+                die;
+            }
         }
-    }*/
+        else if ($_GET['q']=="feed/fetch.json") {
+            //echo "ok"; die;
+            $userid = 0;
+            if ($redis->exists("writeapikey:$apikey")) { $userid = $redis->get("writeapikey:$apikey"); } 
+            else if ($redis->exists("readapikey:$apikey")) { $userid = $redis->get("readapikey:$apikey"); }
+            
+            if ($userid>0) {
+            
+                $feedids = (array) (explode(",",($_GET['ids'])));
+                $feeds = array();
+                for ($i=0; $i<count($feedids); $i++) {
+                    $feedid = (int) $feedids[$i];
+                    $feeds[$i] = false;
+                    if ($redis->exists("feed:$feedid")) {
+                        $fuid = (int) $redis->hget("feed:$feedid","userid");
+                        if ($userid==$fuid) {
+                            $feeds[$i] = 1 * $redis->hget("feed:lastvalue:$feedid",'value');
+                        }
+                    }
+                }
+                header('Content-Type: application/json');
+                print json_encode($feeds);
+                die;
+            }
+        }
+        // -------------------
+    }
+
+    if ($https_enable == true){
+        if (!isset($_GET['q']) || $_GET['q']=="" || $_GET['q']=="user/login") {
+            if(!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == ""){
+                // $redis->incr("httpsredirects");
+                $redirect = "https://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+                // header("HTTP/1.1 301 Moved Permanently");
+                header("Location: $redirect");
+                die;
+            }
+        }
+    }
 
     // 1) Load settings and core scripts
-    require "process_settings.php";
     require "core.php";
     require "route.php";
-    require "locale.php";
 
     $path = get_application_path();
 
-    require "Modules/log/EmonLogger.php";
+    require "Lib/EmonLogger.php";
 
     // 2) Database
     $mysqli = @new mysqli($server,$username,$password,$database);
-    
+
     if ( $mysqli->connect_error ) {
         echo "Can't connect to database, please verify credentials/configuration in settings.php<br />";
         if ( $display_errors ) {
@@ -95,22 +167,9 @@
     // 3) User sessions
     require "Modules/user/rememberme_model.php";
     $rememberme = new Rememberme($mysqli);
-    
+
     require("Modules/user/user_model.php");
     $user = new User($mysqli,$redis,$rememberme);
-
-    $apikey = false;
-    if (isset($_GET['apikey'])) {
-        $apikey = $_GET['apikey'];
-    } else if (isset($_POST['apikey'])) {
-        $apikey = $_POST['apikey'];
-    } else if (isset($_SERVER["HTTP_AUTHORIZATION"])) {
-        // Support passing apikey on Authorization header per rfc6750, like example:
-        //      GET /resource HTTP/1.1
-        //      Host: server.example.com
-        //      Authorization: Bearer THE_API_KEY_HERE
-        $apikey = str_replace('Bearer ', '', $_SERVER["HTTP_AUTHORIZATION"]);
-    }
 
     if ($apikey) {
         $session = $user->apikey_session($apikey);
@@ -126,10 +185,6 @@
         $session = $user->emon_session_start();
     }
 
-    // 4) Language
-    if (!isset($session['lang'])) $session['lang']='';
-    set_emoncms_lang($session['lang']);
-
     // 5) Get route and load controller
     $route = new Route(get('q'));
 
@@ -139,7 +194,7 @@
     if (!$route->controller && !$route->action)
     {
         // Non authenticated defaults
-        if (!isset($session['read']) || (isset($session['read']) && !$session['read'])) 
+        if (!isset($session['read']) || (isset($session['read']) && !$session['read']))
         {
             $route->controller = $default_controller;
             $route->action = $default_action;
@@ -188,7 +243,7 @@
     if ($output['content'] == "" && (!isset($session['read']) || (isset($session['read']) && !$session['read']))) {
 
         if(!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == ""){
-            $redis->incr("httpsredirects");
+            // $redis->incr("httpsredirects");
             $redirect = "https://emoncms.org/user/login";
             header("Location: $redirect");
             die;

@@ -21,17 +21,20 @@ if(file_exists(dirname(__FILE__)."/settings.php"))
     require_once('settings.php');
 
     $error_out = "";
+
+    if (!isset($https_enable)) $https_enable = true;
     
     if (!isset($username) || $username=="") $error_out .= '<p>missing setting: $username</p>';
     if (!isset($password)) $error_out .= '<p>missing setting: $password</p>';
     if (!isset($server) || $server=="") $error_out .= '<p>missing setting: $server</p>';
     if (!isset($database) || $database=="") $error_out .= '<p>missing setting: $database</p>';
     if ($enable_password_reset && !isset($smtp_email_settings)) $error_out .= '<p>missing setting: $smtp_email_settings</p>';
-        
+
     if (!isset($feed_settings)) $error_out .= "<p>missing setting: feed_settings</p>";
-    
+
     if (!isset($redis_enabled)) $redis_enabled = true;
-    
+    if (!isset($redis_server)) $redis_server = "localhost";
+
     if ($error_out!="") {
       echo "<div style='width:600px; background-color:#eee; padding:20px; font-family:arial;'>";
       echo "<h3>settings.php file error</h3>";
@@ -40,7 +43,7 @@ if(file_exists(dirname(__FILE__)."/settings.php"))
       echo "</div>";
       die;
     }
-        
+
 
     // Set display errors
     if (isset($display_errors) && ($display_errors)) {

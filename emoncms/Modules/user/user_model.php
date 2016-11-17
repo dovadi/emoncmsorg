@@ -68,7 +68,7 @@ class User
                     $session['admin'] = 0;
                     $session['lang'] = "en";
 
-                    if ($this->redis) $this->redis->set("writeapikey:$apikey_in",$row['id']);
+                    $this->redis->set("writeapikey:$apikey_in",$row['id']);
                 }
             }
             else
@@ -85,6 +85,8 @@ class User
                     $session['write'] = 0;
                     $session['admin'] = 0;
                     $session['lang'] = "en";
+                    
+                    $this->redis->set("readapikey:$apikey_in",$row['id']);
                 }
             }
             }
