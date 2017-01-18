@@ -46,6 +46,10 @@ At this point no input will be created as we need to start up an inputqueue proc
     
 to the location of script-settings.php on your server.
 
+3) Set default script throttle delay's (these need to be adjusted to account for load and input/feed throughput)
+
+    $ php MainServerScripts/set-usleep.php
+
 3) Run input_queue_processor_1.php from terminal temporarily for testing:
 
     $ sudo php MainServerScripts/inputqueue/input_queue_processor_1.php
@@ -53,11 +57,17 @@ to the location of script-settings.php on your server.
 The output should look like this:
 
     Start of error log file
-    Buffer length: 0 0 1
-    Buffer length: 0 0 0
-    Buffer length: 0 0 0
+    Buffer length: 0 3000 1
+    Buffer length: 0 3000 0
+    Buffer length: 0 3000 0
+    
+3 inputs should now appear in the input list. 
 
 ### Storage Server setup
+
+Create a feed from the inputs created above. While the feed appears to update no data will be written to disk as the datapoints are being queued up in a storage server queue.
+
+
 
 ### Advanced
 
