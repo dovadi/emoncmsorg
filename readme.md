@@ -16,20 +16,15 @@ For the full build of emoncms see the main repository here https://github.com/em
 - Input processing queue's to reduce apache connection time as above.
 - Simplified feed model code, redis always required.
 
-### Documentation
-
-- [Stunnel configuration](stunnel.md)
-- [Setting up the input queue processors and socket server](queuesetup.md)
-
 ### Installation and setup
 
-1. Copy emoncms folder to /var/www/emoncms
-2. Create mysql database
-3. Copy default.settings.php to settings.php
-4. Enter mysql database settings
-5. The default data locations are /var/lib/phpfina and /var/lib/phptimeseries if you wish to change these set accordingly.
-6. Open in browser, register new user (the first user created will be an admin user)
-7. Send a test input: i.e:
+1) Copy emoncms folder to /var/www/emoncms
+2) Create mysql database
+3) Copy default.settings.php to settings.php
+4) Enter mysql database settings
+5) The default data locations are /var/lib/phpfina and /var/lib/phptimeseries if you wish to change these set accordingly.
+6) Open in browser, register new user (the first user created will be an admin user)
+7) Send a test input: i.e:
 
     http://localhost/emoncms/input/post.json?node=1&csv=100,200,300
     
@@ -58,6 +53,9 @@ The output should look like this:
 
 ### Storage Server setup
 
+### Advanced
+
+- [Stunnel configuration](stunnel.md)
 
 ### Licence
 
