@@ -84,8 +84,8 @@ class Feed
         // If feed of given name by the user already exists
         $feedid = $this->get_id($userid,$name);
         if ($feedid!=0) return array('success'=>false, 'message'=>'feed already exists');
-
-        $result = $this->mysqli->query("INSERT INTO feeds (userid,name,datatype,public,engine) VALUES ('$userid','$name','$datatype',false,'$engine')");
+        
+        $result = $this->mysqli->query("INSERT INTO feeds (userid,name,datatype,public,engine,server) VALUES ('$userid','$name','$datatype',false,'$engine','$server')");
         $feedid = $this->mysqli->insert_id;
 
         if ($feedid>0)
