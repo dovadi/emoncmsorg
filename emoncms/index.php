@@ -11,7 +11,9 @@
     http://openenergymonitor.org
 
     */
-
+    
+    
+       
     $emoncms_version = "";
 
     $ltime = microtime(true);
@@ -26,32 +28,36 @@
     } else if (isset($_SERVER["HTTP_AUTHORIZATION"])) {
         $apikey = str_replace('Bearer ', '', $_SERVER["HTTP_AUTHORIZATION"]);
     }
-    
-    
+
+
     // UNCOMMENT TO PUT THE SITE OFFLINE!!!!!!!!!
     /*
     if ($apikey) {
         // echo "ok"; die;
+    } else if(isset($_SESSION['admin'])) {
+    
     } else {
         echo file_get_contents("offline.html");
         die;
     }*/
-    
-    
+
+
     require "process_settings.php";
     
-    // 1st try
-    $redisretry = 0;
     $redis = new Redis();
-    $connected = $redis->connect("localhost");
+    $connected = $redis->connect($redis_server);
     if (!$connected) {
         echo "Can't connect to redis database"; die;
     }
     $redis->incr('fiveseconds:totalhits');
-    // $redis->incr('retrycount',$redisretry);
     
+    $iplog = false;
+    $timelog = false;
+
     if (isset($_GET['q']) && $apikey!==false) {
 
+        if ($_GET['q']=="api/post.json") $_GET['q'] = "input/post.json";
+        if ($_GET['q']=="api/post") $_GET['q'] = "input/post.json";
         if ($_GET['q']=="emoncms/input/post.json") $_GET['q'] = "input/post.json";
         if ($_GET['q']=="emoncms/input/bulk.json") $_GET['q'] = "input/bulk.json";
 
@@ -59,9 +65,11 @@
             //echo "ok"; die;
             if ($redis->exists("writeapikey:$apikey")) {
                 $userid = $redis->get("writeapikey:$apikey");
+                if ($iplog) $redis->incr("iplog:u:$userid:p");
                 require "fast_input.php";
                 header('Content-Type: application/json');
                 print fast_input_post($redis,$userid);
+                if ($timelog) logrequest();
                 die;
             }
         }
@@ -70,21 +78,23 @@
             //echo "ok"; die;
             if ($redis->exists("writeapikey:$apikey")) {
                 $userid = $redis->get("writeapikey:$apikey");
+                if ($iplog) $redis->incr("iplog:u:$userid:b");
                 require "fast_input.php";
                 header('Content-Type: application/json');
                 print fast_input_bulk($redis,$userid);
+                if ($timelog) logrequest();
                 die;
             }
-        } 
-        
+        }
+
         else if ($_GET['q']=="feed/list.json") {
             //echo "ok"; die;
             $userid = 0;
-            if ($redis->exists("writeapikey:$apikey")) { $userid = $redis->get("writeapikey:$apikey"); } 
+            if ($redis->exists("writeapikey:$apikey")) { $userid = $redis->get("writeapikey:$apikey"); }
             else if ($redis->exists("readapikey:$apikey")) { $userid = $redis->get("readapikey:$apikey"); }
-            
+
             if ($userid>0) {
-      
+
                 $feeds = array();
                 $feedids = $redis->sMembers("user:feeds:$userid");
                 foreach ($feedids as $id)
@@ -97,17 +107,19 @@
                 }
                 header('Content-Type: application/json');
                 print json_encode($feeds);
+                if ($iplog) $redis->incr("iplog:u:$userid:r");
+                if ($timelog) logrequest();
                 die;
             }
         }
         else if ($_GET['q']=="feed/fetch.json") {
             //echo "ok"; die;
             $userid = 0;
-            if ($redis->exists("writeapikey:$apikey")) { $userid = $redis->get("writeapikey:$apikey"); } 
+            if ($redis->exists("writeapikey:$apikey")) { $userid = $redis->get("writeapikey:$apikey"); }
             else if ($redis->exists("readapikey:$apikey")) { $userid = $redis->get("readapikey:$apikey"); }
-            
+
             if ($userid>0) {
-            
+
                 $feedids = (array) (explode(",",($_GET['ids'])));
                 $feeds = array();
                 for ($i=0; $i<count($feedids); $i++) {
@@ -122,6 +134,8 @@
                 }
                 header('Content-Type: application/json');
                 print json_encode($feeds);
+                if ($iplog) $redis->incr("iplog:u:$userid:f");
+                if ($timelog) logrequest();
                 die;
             }
         }
@@ -145,7 +159,7 @@
     require "route.php";
 
     $path = get_application_path();
-
+    
     require "Lib/EmonLogger.php";
 
     // 2) Database
@@ -179,11 +193,13 @@
               print "Invalid API key";
               // $log = new EmonLogger(__FILE__);
               // $log->error("Invalid API key '" . $apikey. "'");
+              if ($iplog) $redis->incr("iplog:ip:".getenv("REMOTE_ADDR"));
               exit();
         }
     } else {
         $session = $user->emon_session_start();
     }
+    
 
     // 5) Get route and load controller
     $route = new Route(get('q'));
@@ -232,7 +248,7 @@
             $output = controller($route->controller);
         }
     }
-    
+
     // If no controller found or nothing is returned, give friendly error
     if ($output['content'] === "#UNDEFINED#") {
         header($_SERVER["SERVER_PROTOCOL"]." 406 Not Acceptable");
@@ -244,10 +260,11 @@
 
         if(!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == ""){
             // $redis->incr("httpsredirects");
-            $redirect = "https://emoncms.org/user/login";
+            $redirect = $path."/user/login";
             header("Location: $redirect");
             die;
         } else {
+            // $redis->incr("httpsredirects:here");
             $route->controller = "user";
             $route->action = "login";
             $route->subaction = "";
@@ -255,11 +272,21 @@
         }
     }
 
+    if(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != ""){
+        $redis->incr("httpshits");
+    }
+
+    if (!$session || $session["userid"]==0) {
+        if ($iplog) $redis->incr("iplog:ip:".getenv("REMOTE_ADDR"));
+    } else {
+        if ($iplog) $redis->incr("iplog:u:".$session["userid"]);
+    }
     // $mysqli->close();
+    $redis->close();
 
     $output['route'] = $route;
     $output['session'] = $session;
-    
+
     $theme = "basic";
 
     // 7) Output
@@ -302,3 +329,22 @@
         header($_SERVER["SERVER_PROTOCOL"]." 406 Not Acceptable");
         print "URI not acceptable. Unknown format '".$route->format."'.";
     }
+    
+    if ($timelog) logrequest();
+    
+    function logrequest() {
+        global $ltime;
+        $fh = fopen("/home/trystan/emoncms.log","a");
+        $t = round((microtime(true)-$ltime)*1000000);
+        
+        $seconds = floor($t / 1000000);
+        if ($seconds==0) $seconds = "";
+        
+        
+        fwrite($fh,time()."\t$seconds\t$t\t".$_GET['q']."\n");
+        fclose($fh);
+    }
+    
+    //if (isset($session['userid'])) {
+    //    $redis->incr("user:postrate:".$session['userid']);
+    //}

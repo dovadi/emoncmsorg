@@ -71,22 +71,24 @@ function fast_input_post($redis,$userid)
                 'data'=>$data
             );
             
-            $level1 = 8000;
-            $level2 = 12000;
-            $level3 = 15800;
-
             if (count($data)>0 && $valid) {
                 $str = json_encode($packet);
-                
                 $uid = intval($userid);
-                if ($uid<$level1) {
+
+                global $IQL;
+                
+                if ($uid<$IQL["L1"]) {
                     $redis->rpush('inputbuffer',$str);
-                } elseif ($uid>=$level1 && $uid<$level2) {
+                } elseif ($uid>=$IQL["L1"] && $uid<$IQL["L2"]) {
                     $redis->rpush('inputbuffer2',$str);
-                } elseif ($uid>=$level2 && $uid<$level3) {
+                } elseif ($uid>=$IQL["L2"] && $uid<$IQL["L3"]) {
                     $redis->rpush('inputbuffer3',$str);
-                } else {
+                } elseif ($uid>=$IQL["L3"] && $uid<$IQL["L4"]) {
                     $redis->rpush('inputbuffer4',$str);
+                } elseif ($uid>=$IQL["L4"] && $uid<$IQL["L5"]) {
+                    $redis->rpush('inputbuffer5',$str);
+                } else {
+                    $redis->rpush('inputbuffer6',$str);
                 }
             }
         }
@@ -184,20 +186,22 @@ function fast_input_bulk($redis,$userid)
                     {
                         $redis->set("limiter:$userid:$nodeid",$post_time);
                         $str = json_encode($array);
-
-                        $level1 = 8000;
-                        $level2 = 12000;
-                        $level3 = 15800;
-            
                         $uid = intval($userid);
-                        if ($uid<$level1) {
+                        
+                        global $IQL;
+                        
+                        if ($uid<$IQL["L1"]) {
                             $redis->rpush('inputbuffer',$str);
-                        } elseif ($uid>=$level1 && $uid<$level2) {
+                        } elseif ($uid>=$IQL["L1"] && $uid<$IQL["L2"]) {
                             $redis->rpush('inputbuffer2',$str);
-                        } elseif ($uid>=$level2 && $uid<$level3) {
+                        } elseif ($uid>=$IQL["L2"] && $uid<$IQL["L3"]) {
                             $redis->rpush('inputbuffer3',$str);
-                        } else {
+                        } elseif ($uid>=$IQL["L3"] && $uid<$IQL["L4"]) {
                             $redis->rpush('inputbuffer4',$str);
+                        } elseif ($uid>=$IQL["L4"] && $uid<$IQL["L5"]) {
+                            $redis->rpush('inputbuffer5',$str);
+                        } else {
+                            $redis->rpush('inputbuffer6',$str);
                         }
                     } else { 
                         if (($post_time-$lasttime)<0) $droppednegative ++;

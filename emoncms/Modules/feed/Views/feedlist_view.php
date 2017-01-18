@@ -3,25 +3,24 @@
 ?>
 <script type="text/javascript" src="<?php echo $path; ?>Modules/user/user.js"></script>
 <script type="text/javascript" src="<?php echo $path; ?>Modules/feed/feed.js"></script>
-<script type="text/javascript" src="<?php echo $path; ?>Lib/tablejs/table.js"></script>
+<script type="text/javascript" src="<?php echo $path; ?>Lib/tablejs/table.1.js"></script>
 <script type="text/javascript" src="<?php echo $path; ?>Lib/tablejs/custom-table-fields.js"></script>
 <link href="<?php echo $path; ?>Lib/bootstrap-datetimepicker-0.0.11/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
 <script type="text/javascript" src="<?php echo $path; ?>Lib/bootstrap-datetimepicker-0.0.11/js/bootstrap-datetimepicker.min.js"></script>
 
 <style>
 input[type="text"] {
-         width: 88%;
+    width: 88%;
 }
 
 .icon-circle-arrow-down {
-cursor:pointer
+    cursor:pointer
 }
 </style>
 
 <br>
 
-<div id="apihelphead"><div style="float:right;"><a href="https://emoncms.org/site/api#feed"><?php echo _('Feed API Help'); ?></a></div></div>
-
+<div id="apihelphead"><div style="float:right;"><a href="<?php echo $path; ?>site/api#feed"><?php echo _('Feed API Help'); ?></a></div></div>
 <div class="container">
         <div id="localheading"><h2><?php echo _('Feeds'); ?></h2></div>
 
@@ -29,11 +28,13 @@ cursor:pointer
 
         <div id="nofeeds" class="alert alert-block hide">
                 <h4 class="alert-heading"><?php echo _('No feeds created'); ?></h4>
-                <p><?php echo _('Feeds are where your monitoring data is stored. The recommended route for creating feeds is to start by creating inputs (see the inputs tab). Once you have inputs you can either log them straight to feeds or if you want you can add various levels of input processing to your inputs to create things like daily average data or to calibrate inputs before storage. You may want to follow the link as a guide for generating your request.'); ?><a href="api"><?php echo _('Feed API helper'); ?></a></p>
+                <p><?php echo _('Feeds are where your monitoring data is stored. The recommended route for creating feeds is to start by creating inputs (see the inputs tab). Once you have inputs you can either log them straight to feeds or if you want you can add various levels of input processing to your inputs to create things like daily average data or to calibrate inputs before storage: '); ?><a href="<?php echo $path; ?>site/api#feed"><?php echo _('Feed API help.'); ?></a></p>
         </div>
 
         <hr>
         <button id="refreshfeedsize" class="btn btn-small" >Refresh feed size <i class="icon-refresh" ></i></button>
+        
+        <!--<p style="font-size:12px; color:#aaa; padding-top:15px">Window width: <span id="window_width"></span></p>-->
 </div>
 
 <div id="myModal" class="modal hide" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="false">
@@ -124,10 +125,10 @@ cursor:pointer
     table.element = "#table";
 
     table.fields = {
-        'id':{'title':"<?php echo _('Id'); ?>", 'type':"fixed"},
+        'id':{'title':"<?php echo _('Id'); ?>", 'type':"fixedlink", 'link':path+"graph/"},
         'name':{'title':"<?php echo _('Name'); ?>", 'type':"text"},
         'tag':{'title':"<?php echo _('Tag'); ?>", 'type':"text"},
-        'datatype':{'title':"<?php echo _('Datatype'); ?>", 'type':"select", 'options':['','REALTIME','DAILY','HISTOGRAM']},
+        'datatype':{'title':"<?php echo _('Datatype'); ?>", 'type':"fixedselect", 'options':['','REALTIME','DAILY','HISTOGRAM']},
         'engine':{'title':"<?php echo _('Engine'); ?>", 'type':"fixedselect", 'options':['MYSQL','TIMESTORE','PHPTIMESERIES','GRAPHITE','PHPTIMESTORE','PHPFINA','PHPFIWA']},
         'public':{'title':"<?php echo _('Public'); ?>", 'type':"icon", 'trueicon':"icon-globe", 'falseicon':"icon-lock"},
         'size':{'title':"<?php echo _('Size'); ?>", 'type':"fixed"},
@@ -142,16 +143,18 @@ cursor:pointer
         'icon-basic':{'title':'', 'type':"iconbasic", 'icon':'icon-circle-arrow-down'}
 
     }
+    
 
     table.groupby = 'tag';
     table.deletedata = false;
-
-    table.draw();
+    resize();
+    
+    // table.draw();
 
     update();
 
     function update()
-    {   
+    {
         var apikeystr = ""; if (feed.apikey!="") apikeystr = "?apikey="+feed.apikey;
         
         $.ajax({ url: path+"feed/list.json"+apikeystr, dataType: 'json', async: true, success: function(data) {
@@ -181,7 +184,7 @@ cursor:pointer
         } });
     }
 
-    var updater = setInterval(update, 5000);
+    var updater = setInterval(update, 10000);
 
     $("#table").bind("onEdit", function(e){
         clearInterval(updater);
@@ -189,7 +192,7 @@ cursor:pointer
 
     $("#table").bind("onSave", function(e,id,fields_to_update){
         feed.set(id,fields_to_update);
-        updater = setInterval(update, 5000);
+        updater = setInterval(update, 10000);
     });
 
     $("#table").bind("onDelete", function(e,id,row){
@@ -208,7 +211,7 @@ cursor:pointer
         update();
 
         $('#myModal').modal('hide');
-        updater = setInterval(update, 5000);
+        updater = setInterval(update, 10000);
     });
 
     $("#refreshfeedsize").click(function(){
@@ -239,7 +242,7 @@ cursor:pointer
         language: 'en-EN'
     });
 
-    $('#export-interval').on('change', function(e) 
+    $('#export-interval').on('change', function(e)
     {
         var export_start = parse_timepicker_time($("#export-start").val());
         var export_end = parse_timepicker_time($("#export-end").val());
@@ -249,7 +252,7 @@ cursor:pointer
         $("#downloadsize").html((downloadsize/1024).toFixed(0));
     });
         
-    $('#datetimepicker1, #datetimepicker2').on('changeDate', function(e) 
+    $('#datetimepicker1, #datetimepicker2').on('changeDate', function(e)
     {
         var export_start = parse_timepicker_time($("#export-start").val());
         var export_end = parse_timepicker_time($("#export-end").val());
@@ -279,6 +282,7 @@ cursor:pointer
     
     function parse_timepicker_time(timestr)
     {
+        console.log("Time string: "+timestr);
         var tmp = timestr.split(" ");
         if (tmp.length!=2) return false;
         
@@ -288,7 +292,44 @@ cursor:pointer
         var time = tmp[1].split(":");
         if (time.length!=3) return false;
         
-        return new Date(date[2],date[1]-1,date[0],time[0],time[1],time[2],0).getTime() / 1000;
+        var timestamp = new Date(date[2],date[1]-1,date[0],time[0],time[1],time[2],0).getTime() / 1000;
+        console.log("Timestamp: "+timestamp);
+        
+        return timestamp;
     }
+    
+    function parseISOLocal(s) {
+        var b = s.split(/\D/);
+        return new Date(b[0], b[1]-1, b[2], b[3], b[4], b[5]);
+    }
+    
+
+$(window).resize(function(){
+    resize();
+});
+
+function resize() {
+    var width = $(window).width();
+    $("#window_width").html(width);
+
+    if (width<800) {
+        // $("td[field=datatype]").hide();
+        // $("th[field=datatype]").hide();
+        table.fields["datatype"].display = false;
+        table.fields["engine"].display = false;
+        table.fields["public"].display = false;
+        table.fields["size"].display = false;
+        table.fields["tag"].display = false;
+    } else {
+        table.fields["datatype"].display = true;
+        table.fields["engine"].display = true;
+        table.fields["public"].display = true;
+        table.fields["size"].display = true;
+        table.fields["tag"].display = true;
+    }
+    
+    table.draw();
+}
+
 
 </script>

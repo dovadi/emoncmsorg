@@ -16,8 +16,7 @@ function input_controller()
 {
     //return array('content'=>"ok");
 
-    global $mysqli, $redis, $user, $session, $route, $max_node_id_limit, $feed_settings;
-
+    global $mysqli, $redis, $user, $session, $route, $max_node_id_limit, $feed_settings, $IQL;
     // There are no actions in the input module that can be performed with less than write privileges
     if (!isset($session['write'])) return array('content'=>false);
     if (!$session['write']) return array('content'=>false);
@@ -165,7 +164,23 @@ function input_controller()
                             {
                                 $redis->set("limiter:$userid:$nodeid",$time);
                                 $str = json_encode($array);
-                                $redis->rpush('inputbuffer4',$str);
+
+                                $uid = (int) $userid;
+                                
+                                if ($uid<$IQL["L1"]) {
+                                    $redis->rpush('inputbuffer',$str);
+                                } elseif ($uid>=$IQL["L1"] && $uid<$IQL["L2"]) {
+                                    $redis->rpush('inputbuffer2',$str);
+                                } elseif ($uid>=$IQL["L2"] && $uid<$IQL["L3"]) {
+                                    $redis->rpush('inputbuffer3',$str);
+                                } elseif ($uid>=$IQL["L3"] && $uid<$IQL["L4"]) {
+                                    $redis->rpush('inputbuffer4',$str);
+                                } elseif ($uid>=$IQL["L4"] && $uid<$IQL["L5"]) {
+                                    $redis->rpush('inputbuffer5',$str);
+                                } else {
+                                    $redis->rpush('inputbuffer6',$str);
+                                }
+                                
                             } else { 
                                 if (($time-$lasttime)<0) $droppednegative ++;
                                 $dropped ++; 
@@ -266,7 +281,22 @@ function input_controller()
 
                     if (count($data)>0 && $valid) {
                         $str = json_encode($packet);
-                        $redis->rpush('inputbuffer4',$str);
+                        
+                        $uid = (int) $session['userid'];
+                        
+                        if ($uid<$IQL["L1"]) {
+                            $redis->rpush('inputbuffer',$str);
+                        } elseif ($uid>=$IQL["L1"] && $uid<$IQL["L2"]) {
+                            $redis->rpush('inputbuffer2',$str);
+                        } elseif ($uid>=$IQL["L2"] && $uid<$IQL["L3"]) {
+                            $redis->rpush('inputbuffer3',$str);
+                        } elseif ($uid>=$IQL["L3"] && $uid<$IQL["L4"]) {
+                            $redis->rpush('inputbuffer4',$str);
+                        } elseif ($uid>=$IQL["L4"] && $uid<$IQL["L5"]) {
+                            $redis->rpush('inputbuffer5',$str);
+                        } else {
+                            $redis->rpush('inputbuffer6',$str);
+                        }
                     }
                 }
                 else

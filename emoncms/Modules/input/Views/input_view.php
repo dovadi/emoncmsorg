@@ -27,7 +27,7 @@ option.select-hr { border-bottom: 1px dotted #000; }
 </style>
 
 <br>
-<div id="apihelphead"><div style="float:right;"><a href="https://emoncms.org/site/api#input"><?php echo _('Input API Help'); ?></a></div></div>
+<div id="apihelphead"><div style="float:right;"><a href="<?php echo $path; ?>site/api#input"><?php echo _('Input API Help'); ?></a></div></div>
 
 <div class="container">
     <div id="localheading"><h2><?php echo _('Inputs'); ?></h2></div>
@@ -67,7 +67,7 @@ option.select-hr { border-bottom: 1px dotted #000; }
                         <select id="input-select" style="width:140px;"></select>
                     </span>
 
-                    <span id="type-feed">        
+                    <span id="type-feed">
                         <select id="feed-select" style="width:140px;"></select>
                         
                         <input type="text" id="feed-name" style="width:150px;" placeholder="Feed name..." />
@@ -114,7 +114,8 @@ option.select-hr { border-bottom: 1px dotted #000; }
 
     <div id="noinputs" class="alert alert-block hide">
             <h4 class="alert-heading"><?php echo _('No inputs created'); ?></h4>
-            <p><?php echo _('Inputs is the main entry point for your monitoring device. Configure your device to post values here, you may want to follow the <a href="api">Input API helper</a> as a guide for generating your request.'); ?></p>
+            <p><?php echo _('Inputs is the main entry point for your monitoring device. Configure your device to post values here, you may want to follow the'); ?>
+            <a href="<?php echo $path; ?>site/api#input"><?php echo _('Input API Helper'); ?></a><?php echo _(' as a guide for generating your request.'); ?></p>
     </div>
 
 </div>
@@ -153,7 +154,7 @@ option.select-hr { border-bottom: 1px dotted #000; }
     update();
 
     function update()
-    {   
+    {
         $.ajax({ url: path+"input/list.json", dataType: 'json', async: true, success: function(data) {
         
             table.data = data;
@@ -170,7 +171,7 @@ option.select-hr { border-bottom: 1px dotted #000; }
             
             if (firstrun) {
                 firstrun = false;
-                load_all(); 
+                load_all();
             }
         }});
     }
@@ -208,7 +209,7 @@ option.select-hr { border-bottom: 1px dotted #000; }
             var tmp = i.processList.split(",");
             for (n in tmp)
             {
-                var process = tmp[n].split(":"); 
+                var process = tmp[n].split(":");
                 processlist.push(process);
             }
         }

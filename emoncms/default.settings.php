@@ -6,25 +6,31 @@
 
     */
 
+    $https_enable = false;
+
+    // Input Queue division levels (number of users)
+    $IQL = array(
+        "L1"=>3500, // users 0 to 3500 etc...
+        "L2"=>7500,
+        "L3"=>11500,
+        "L4"=>14000,
+        "L5"=>17500
+    );
+
     $username = "";
     $password = "";
     $server   = "";
     $database = "";
 
     $redis_enabled = true;
-    $redis_server = "localhost";
-
-    $https_enable = true;
+    $redis_server = "127.0.0.1";
 
     $feed_settings = array(
-        'phpfiwa'=>array(
-            'datadir'=>'/var/lib/phpfiwa/'
-        ),
         'phpfina'=>array(
-            'datadir'=>'/var/lib/phpfina/'
+            //'datadir'=>'/home/username/emoncmsdata/phpfina/'
         ),
         'phptimeseries'=>array(
-            'datadir'=>'/var/lib/phptimeseries/'
+            //'datadir'=>'/home/username/emoncmsdata/phptimeseries/'
         )
     );
 
@@ -80,7 +86,7 @@
     $enable_rememberme = TRUE;
 
     // Skip database setup test - set to false once database has been setup.
-    $dbtest = FALSE;
+    $dbtest = TRUE;
 
     // Log4PHP configuration
     $log4php_configPath = 'logconfig.xml';
