@@ -1,5 +1,19 @@
 <?php
 
+/*
+
+All Emoncms code is released under the GNU Affero General Public License.
+See COPYRIGHT.txt and LICENSE.txt.
+
+---------------------------------------------------------------------
+Emoncms - open source energy visualisation
+Part of the OpenEnergyMonitor project:
+http://openenergymonitor.org
+
+*/
+    
+define('EMONCMS_EXEC', 1);
+
 $redis = new Redis();
 $connected = $redis->connect("127.0.0.1");
 
@@ -9,11 +23,16 @@ ini_set('display_errors', 'on');
 $fp = fopen("storageserver0lock", "w");
 if (! flock($fp, LOCK_EX | LOCK_NB)) { echo "Already running\n"; die; }
 
+require "/home/username/scripts/script-settings.php";
+chdir($emoncms_root);
+
+require "process_settings.php";
 $logger = new EmonLogger();
-require "/var/www/emoncms/Modules/feed/engine/PHPFina.php";
-require "/var/www/emoncms/Modules/feed/engine/PHPTimeSeries.php";
-$phpfina = new PHPFina(array());
-$phptimeseries = new PHPTimeSeries(array());
+
+require "Modules/feed/engine/PHPFina.php";
+require "Modules/feed/engine/PHPTimeSeries.php";
+$phpfina = new PHPFina($feed_settings['phpfina']);
+$phptimeseries = new PHPTimeSeries($feed_settings['phpfina']);
 
 $usleep = 0;
 $ltime = time();
