@@ -1,0 +1,82 @@
+<?php
+
+$redis = new Redis();
+$connected = $redis->connect("127.0.0.1");
+
+error_reporting(E_ALL);
+ini_set('display_errors', 'on');
+
+$fp = fopen("storageserver0lock", "w");
+if (! flock($fp, LOCK_EX | LOCK_NB)) { echo "Already running\n"; die; }
+
+$logger = new EmonLogger();
+require "/var/www/emoncms/Modules/feed/engine/PHPFina.php";
+require "/var/www/emoncms/Modules/feed/engine/PHPTimeSeries.php";
+$phpfina = new PHPFina(array());
+$phptimeseries = new PHPTimeSeries(array());
+
+$usleep = 0;
+$ltime = time();
+
+while(true)
+{
+
+    if ((time()-$ltime)>1) {
+        $ltime = time();
+        
+        $usleep = (int) $redis->get('SS0:usleep');
+        if ($usleep<0) $usleep = 0;
+        
+        if ($redis->get('storageserver0-stop')==1) {
+            $redis->set('storageserver0-stop',0);
+            die;
+        }  
+    }
+
+    if ($redis->llen('feedpostqueue:0')>0)
+    {
+        $line = $redis->lpop("feedpostqueue:0");
+        $redis->incr("storageserver0-count");
+        $redis->incr("SS0:count");
+        $d = explode(",",$line);
+
+        if (count($d)==5) {
+            $id = (int) $d[0];
+            $time = (int) $d[1];
+            $value = (float) $d[2];
+            $engine = (int) $d[3][0];
+            $padding_mode = (int) $d[4][0];
+            
+            // print "$id,$time,$value,$engine,$padding_mode\n";
+            
+            if ($engine==5) {
+                if ($padding_mode==1) $phpfina->padding_mode = "join";
+                $phpfina->post($id,$time,$value);
+                if ($padding_mode==1) $phpfina->padding_mode = "nan";
+            }
+            
+            if ($engine==2) {
+                $phptimeseries->post($id,$time,$value);
+            }
+        }
+    }
+    
+    usleep($usleep);
+}
+
+
+class EmonLogger
+{
+    public function __construct()
+    {
+    
+    }
+
+    public function info ($message){
+        // print $message."\n";
+    }
+    
+    public function warn ($message){
+        print $message."\n";
+    }
+}
