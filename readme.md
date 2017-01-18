@@ -10,7 +10,7 @@ For the full build of emoncms see the main repository here https://github.com/em
 
 ### Key Features
 
-- PHPFina and PHPFiwa can be run as services on a 2nd storage server, requests are forwarded from main server and secured with stunnel.
+- PHPFina feeds can be run as a service on a 2nd storage server, requests are forwarded from main server and secured with stunnel.
 - Data to be written to storage server is transferred via a queue + socket stream for efficient transport and secured with stunnel.
 - Faster input post/bulk pipeline in order to release apache connection as fast as possible
 - Input processing queue's to reduce apache connection time as above.
