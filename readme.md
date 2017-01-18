@@ -21,6 +21,50 @@ For the full build of emoncms see the main repository here https://github.com/em
 - [Stunnel configuration](stunnel.md)
 - [Setting up the input queue processors and socket server](queuesetup.md)
 
+### Installation and setup
+
+1. Copy emoncms folder to /var/www/emoncms
+
+2. Create mysql database
+
+3. Copy default.settings.php to settings.php
+
+4. Enter mysql database settings
+
+5. The default data locations are /var/lib/phpfina and /var/lib/phptimeseries if you wish to change these set accordingly.
+
+6. Open in browser, register new user (the first user created will be an admin user)
+
+7. Send a test input: i.e:
+
+    http://localhost/emoncms/input/post.json?node=1&csv=100,200,300
+    
+At this point no input will be created as we need to start up an inputqueue processor.
+
+### Setting up an input queue processor
+
+1. Create script-settings.php from default.script-settings.php in MainServerScripts
+
+2. Open MainServerScripts/inputqueue/input_queue_processor_1.php in an editor. Change line:
+
+    require "/home/username/scripts/script-settings.php";
+    
+to the location of script-settings.php on your server.
+
+3. Run input_queue_processor_1.php from terminal temporarily for testing:
+
+    $ sudo php MainServerScripts/inputqueue/input_queue_processor_1.php
+
+The output should look like this:
+
+    Start of error log file
+    Buffer length: 0 0 1
+    Buffer length: 0 0 0
+    Buffer length: 0 0 0
+
+### Storage Server setup
+
+
 ### Licence
 
 All Emoncms code is released under the GNU Affero General Public License. See COPYRIGHT.txt and LICENSE.txt.
