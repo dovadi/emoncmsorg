@@ -11,7 +11,7 @@ Part of the OpenEnergyMonitor project:
 http://openenergymonitor.org
 
 */
-    
+
 define('EMONCMS_EXEC', 1);
 
 $redis = new Redis();

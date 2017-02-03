@@ -22,17 +22,19 @@
 # m h  dom mon dow   command
 
 # INPUT QUEUES
-* * * * * php /home/username/scripts/inputqueue/input_queue_processor_1.php >> /var/log/emoncms/inputqueue1.log
-* * * * * php /home/username/scripts/inputqueue/input_queue_processor_2.php >> /var/log/emoncms/inputqueue2.log
-* * * * * php /home/username/scripts/inputqueue/input_queue_processor_3.php >> /var/log/emoncms/inputqueue3.log
-* * * * * php /home/username/scripts/inputqueue/input_queue_processor_4.php >> /var/log/emoncms/inputqueue4.log
-* * * * * php /home/username/scripts/inputqueue/input_queue_processor_5.php >> /var/log/emoncms/inputqueue5.log
-* * * * * php /home/username/scripts/inputqueue/input_queue_processor_6.php >> /var/log/emoncms/inputqueue6.log
+* * * * * php /home/trystan/scripts/inputqueue/input_queue_processor_1.php >> /var/log/emoncms/inputqueue1.log
+* * * * * php /home/trystan/scripts/inputqueue/input_queue_processor_2.php >> /var/log/emoncms/inputqueue2.log
+* * * * * php /home/trystan/scripts/inputqueue/input_queue_processor_3.php >> /var/log/emoncms/inputqueue3.log
+* * * * * php /home/trystan/scripts/inputqueue/input_queue_processor_4.php >> /var/log/emoncms/inputqueue4.log
+* * * * * php /home/trystan/scripts/inputqueue/input_queue_processor_5.php >> /var/log/emoncms/inputqueue5.log
+* * * * * php /home/trystan/scripts/inputqueue/input_queue_processor_6.php >> /var/log/emoncms/inputqueue6.log
 
+# LOCAL STORAGE SERVER
+* * * * * php /home/trystan/scripts/storageserver/storageserver0.php >> /var/log/emoncms/storageserver0.log
 # SOCKET SERVER
-* * * * * php /home/username/scripts/storageserver/socketserver1.php >> /var/log/emoncms/socketserver1.log
-* * * * * php /home/username/scripts/storageserver/socketserver2.php >> /var/log/emoncms/socketserver2.log
+* * * * * php /home/trystan/scripts/storageserver/socketserver1.php >> /var/log/emoncms/socketserver1.log
+* * * * * php /home/trystan/scripts/storageserver/socketserver2.php >> /var/log/emoncms/socketserver2.log
 
 # OTHER
-# */5 * * * * php /home/username/scripts/activefeeds.php >/dev/null 2>&1
-# * * * * * php /home/username/postprocess/postprocess.php >> /var/log/emoncms/postprocess.log
+*/5 * * * * php /home/trystan/scripts/activefeeds.php >/dev/null 2>&1
+# * * * * * php /home/trystan/postprocess/postprocess.php >> /var/log/emoncms/postprocess.log
