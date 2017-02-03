@@ -10,7 +10,7 @@ For the full build of emoncms see the main repository here https://github.com/em
 
 ### Key Features
 
-- PHPFina and PHPFiwa can be run as services on a 2nd storage server, requests are forwarded from main server and secured with stunnel.
+- PHPFina feeds can be run as a service on a 2nd storage server, requests are forwarded from main server and secured with stunnel.
 - Data to be written to storage server is transferred via a queue + socket stream for efficient transport and secured with stunnel.
 - Faster input post/bulk pipeline in order to release apache connection as fast as possible
 - Input processing queue's to reduce apache connection time as above.
@@ -67,7 +67,23 @@ The output should look like this:
 
 Create a feed from the inputs created above. While the feed appears to update no data will be written to disk as the datapoints are being queued up in a storage server queue.
 
+1. Open to edit MainServerScripts/storageserver/storageserver0.php in an editor. Change line
 
+    require "/home/username/scripts/script-settings.php";
+    
+to the location of script-settings.php on your server.
+
+2) Run storageserver0.php from terminal temporarily for testing:
+
+    $ sudo php MainServerScripts/storageserver/storageserver0.php
+    
+Date should now be written to disk.
+
+To view data the graph module needs to be installed in emoncms/Modules/graph, this can be done using git:
+
+    git clone https://github.com/emoncms/graph.git
+    
+Update the mysql database from the administration interface once installed to create the graph module table.
 
 ### Advanced
 
