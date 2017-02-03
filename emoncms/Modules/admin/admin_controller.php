@@ -51,6 +51,8 @@ function admin_controller()
             $result = view("Modules/admin/userlist_view.php", array());
         }
         
+
+
         if ($route->action == 'userlist' && $session['write'] && $session['admin'])
         {
             $data = array();

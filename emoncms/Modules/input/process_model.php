@@ -245,8 +245,8 @@ class Process
     //---------------------------------------------------------------------------------------
     public function power_to_kwh($feedid, $time_now, $value)
     {
-        global $redis;
-        if ($redis && $redis->exists("disabled:$feedid")) return $value;
+        // global $redis;
+        // if ($redis && $redis->exists("disabled:$feedid")) return $value;
         
         $new_kwh = 0;
      
@@ -659,7 +659,7 @@ class Process
         global $redis;
         if (!$redis) return $value; // return if redis is not available
         
-        if ($redis->exists("disabled:$feedid")) return $value;
+        // if ($redis->exists("disabled:$feedid")) return $value;
 
         if ($redis->exists("process:whaccumulator:$feedid")) {
             $last_input = $redis->hmget("process:whaccumulator:$feedid",array('time','value'));

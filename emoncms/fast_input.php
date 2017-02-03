@@ -78,7 +78,7 @@ function fast_input_post($redis,$userid)
                 global $IQL;
                 
                 if ($uid<$IQL["L1"]) {
-                    $redis->rpush('inputbuffer',$str);
+                    $redis->rpush('inputbuffer1',$str);
                 } elseif ($uid>=$IQL["L1"] && $uid<$IQL["L2"]) {
                     $redis->rpush('inputbuffer2',$str);
                 } elseif ($uid>=$IQL["L2"] && $uid<$IQL["L3"]) {
@@ -191,7 +191,7 @@ function fast_input_bulk($redis,$userid)
                         global $IQL;
                         
                         if ($uid<$IQL["L1"]) {
-                            $redis->rpush('inputbuffer',$str);
+                            $redis->rpush('inputbuffer1',$str);
                         } elseif ($uid>=$IQL["L1"] && $uid<$IQL["L2"]) {
                             $redis->rpush('inputbuffer2',$str);
                         } elseif ($uid>=$IQL["L2"] && $uid<$IQL["L3"]) {

@@ -168,7 +168,7 @@ function input_controller()
                                 $uid = (int) $userid;
                                 
                                 if ($uid<$IQL["L1"]) {
-                                    $redis->rpush('inputbuffer',$str);
+                                    $redis->rpush('inputbuffer1',$str);
                                 } elseif ($uid>=$IQL["L1"] && $uid<$IQL["L2"]) {
                                     $redis->rpush('inputbuffer2',$str);
                                 } elseif ($uid>=$IQL["L2"] && $uid<$IQL["L3"]) {
@@ -285,7 +285,7 @@ function input_controller()
                         $uid = (int) $session['userid'];
                         
                         if ($uid<$IQL["L1"]) {
-                            $redis->rpush('inputbuffer',$str);
+                            $redis->rpush('inputbuffer1',$str);
                         } elseif ($uid>=$IQL["L1"] && $uid<$IQL["L2"]) {
                             $redis->rpush('inputbuffer2',$str);
                         } elseif ($uid>=$IQL["L2"] && $uid<$IQL["L3"]) {
