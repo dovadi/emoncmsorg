@@ -11,17 +11,23 @@
 
     */
     
-    
-    $specialuser = array();
-    
-    ini_set("error_log", "/var/log/emoncms/inputqueue_error1.log");
+    // =======
+    $IQid = 1;
+    // =======
 
     define('EMONCMS_EXEC', 1);
 
-    $fp = fopen("inputqueue1-lock", "w");
+    // Load common settings
+    require "/home/username/scripts/script-settings.php";
+    
+    // Set error log location
+    ini_set("error_log", "$log_location/inputqueue-error-$IQid.log");
+
+    // Script lock, only one instance of the input queue can run at one time
+    $fp = fopen("inputqueue$IQid-lock", "w");
     if (! flock($fp, LOCK_EX | LOCK_NB)) { echo "Already running\n"; die; }
 
-    require "/home/username/scripts/script-settings.php";
+    // Set document root
     chdir($emoncms_root);
 
     require "process_settings.php";
@@ -29,14 +35,10 @@
    
     error_log("Start of error log file");
     
-    
     $mysqli = new mysqli($server,$username,$password,$database);
 
     $redis = new Redis();
     $connected = $redis->connect($redis_server);
-    if (!$connected) {
-        echo "Can't connect to redis database"; die;
-    }
 
     require("Modules/user/user_model.php");
     $user = new User($mysqli,$redis,null);
@@ -52,66 +54,23 @@
 
     $rn = 0;
     $ltime = time();
-
     $usleep = 1000;
     
-    $totalwrktime = 0;
+    $inputlimiter = array();
     
-    $last_buflength = 0;
-    $buflength = 0;
-
     while(true)
     {
         if ((time()-$ltime)>=1)
         {
             $ltime = time();
-
-            $last_buflength = $buflength;
-            $buflength = $redis->llen('inputbuffer');
-
-            $target = 100;
-            
-             
-            $change = ($buflength - $target)*0.05;
-            
-            if ($buflength-$last_buflength<0) $change = 0;
-            // A basic throthler to stop the script using up cpu when there is nothing to do.
-            $usleep -= $change;
-
-            // Fine tune sleep
-            /*
-            if ($buflength<50) {
-                $usleep += 50;
-            } else {
-                $usleep -= 50;
-            }
-            */
-            // if there is a big buffer reduce sleep to zero to clear buffer.
-            //if ($buflength>500) $usleep = 100;
-
-            // if throughput is low then increase sleep significantly
-            if ($rn==0) $usleep = 100000;
-
-            // sleep cant be less than zero
+            $buflength = $redis->llen("inputbuffer$IQid");
+            $usleep = (int) $redis->get("usleep:$IQid");
             if ($usleep<0) $usleep = 0;
-            if ($usleep>1500) $usleep = 1500;
-            
-            $usleep = (int) $redis->get('usleep:1');
-            if ($usleep<0) $usleep = 0;
-
-            $averagewrktime = 0;
-            if ($rn>0) $averagewrktime = (int) ($totalwrktime / $rn);
-            $totalwrktime = 0;
-            
-            $redis->set('queue:wrktime',$averagewrktime);
-            $redis->set('queue:usleep',$usleep);
-
             echo "Buffer length: ".$buflength." ".$usleep." ".$rn."\n";
-            $redis->incrby('queue:rn',$rn);
-            $rn = 0;
-            
-            if ($redis->get('stopinputqueue')==1) {
-              $redis->set('stopinputqueue',0);
+            $redis->incrby("queue$IQid:rn",$rn); $rn = 0;
+
+            if ($redis->get("stopinputqueue$IQid")==1) {
+              $redis->set("stopinputqueue$IQid",0);
               die;
             }
         }
@@ -119,44 +78,23 @@
         // check if there is an item in the queue to process
         $line_str = false;
         
-        
-
-        if ($redis->llen('inputbuffer')>0)
+        if ($redis->llen("inputbuffer$IQid")>0)
         {
             // check if there is an item in the queue to process
-            $line_str = $redis->lpop('inputbuffer');
+            $line_str = $redis->lpop("inputbuffer$IQid");
         }
-        
-        /*
-        if ($line_str)
-        {
-            $packet = json_decode($line_str);
-            $userid = $packet->userid;
-
-            // Shift users out of queue 5 into queue 3
-            
-            if ($userid<4000) {
-                $redis->rpush('inputbuffer5',$line_str);
-                $line_str = false;
-            }
-        }*/
-        
 
         if ($line_str)
         {
             $wrkstart = microtime(true);
             $rn++;
 
-            //echo $line_str."\n";
             $packet = json_decode($line_str);
-
             $userid = $packet->userid;
             $time = $packet->time;
             $nodeid = $packet->nodeid;
             $data = $packet->data;
             
-            // if ($userid==4351) error_log("User 4351: $time, $nodeid, ".json_encode($data));
-
             // Load current user input meta data
             // It would be good to avoid repeated calls to this
             $dbinputs = $input->get_inputs($userid);
@@ -182,10 +120,10 @@
                     } else {
                         $inputid = $dbinputs[$nodeid][$name]['id'];
                         // Start of rate limiter
-                        $lasttime = 0; if ($redis->exists("inputlimiter:$inputid")) $lasttime = $redis->get("inputlimiter:$inputid");
+                        $lasttime = 0; if (isset($inputlimiter[$inputid])) $lasttime = $inputlimiter[$inputid];
                         if (($time-$lasttime)>=4)
                         {
-                            $redis->set("inputlimiter:$inputid",$time);
+                            $inputlimiter[$inputid] = $time;
                             $input->set_timevalue($dbinputs[$nodeid][$name]['id'],$time,$value);
                             if ($dbinputs[$nodeid][$name]['processList']) {
                                 $tmp[] = array('value'=>$value,'processList'=>$dbinputs[$nodeid][$name]['processList']);
@@ -197,18 +135,15 @@
                 }
                 else
                 {
-                  error_log("Nodeid $nodeid is not valid user $userid"); 
+                  // error_log("Nodeid $nodeid is not valid user $userid"); 
                 }
             }
             
-
             foreach ($tmp as $i) $process->input($time,$i['value'],$i['processList']);
             
             $wrktime = (int)((microtime(true) - $wrkstart)*1000000);
-            
             if ($wrktime>100000) error_log("$userid, $nodeid, $wrktime");
             
-            $totalwrktime += $wrktime;
         }
         usleep($usleep);
     }
