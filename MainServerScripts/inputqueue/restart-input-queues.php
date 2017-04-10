@@ -13,7 +13,7 @@
         
         if ($seconds==55) {
             print "RESTARTING input processors\n";
-            $redis->set('stopinputqueue',1);
+            $redis->set('stopinputqueue1',1);
             $redis->set('stopinputqueue2',1);
             $redis->set('stopinputqueue3',1);
             $redis->set('stopinputqueue4',1);
