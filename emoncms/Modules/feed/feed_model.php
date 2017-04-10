@@ -258,18 +258,15 @@ class Feed
     public function get_timevalue($id)
     {
         $id = (int) $id;
-
+        
         if ($this->redis->exists("feed:lastvalue:$id")) {
             $lastvalue = $this->redis->hmget("feed:lastvalue:$id",array('time','value'));
+            
         } else {
-            if ($this->redis->exists("feed:error:lv:$id")) return false;
-            // if it does not load it in to redis from the actual feed data.
             $lastvalue = $this->get_timevalue_from_data($id);
             
             if (!isset($lastvalue['time']) || !isset($lastvalue['value'])) {
-                $this->redis->set("feed:error:lv:$id",1);
-                $this->log->warn("No time or value for feed $id");
-                return false;
+                $this->log->warn("ERROR: Feed Model, No time or value for feed $id");
             }
             
             $this->redis->hMset("feed:lastvalue:$id", array(
@@ -284,7 +281,7 @@ class Feed
     public function get_timevalue_seconds($id)
     {
         $lastvalue = $this->get_timevalue($id);
-        $lastvalue['time'] = strtotime($lastvalue['time']);
+        if ($lastvalue['time']!=0) $lastvalue['time'] = strtotime($lastvalue['time']);
         return $lastvalue;
     }
 
@@ -478,24 +475,37 @@ class Feed
         return $data;
     }
     
-    public function csv_export($feedid,$start,$end,$outinterval)
+    public function csv_export($feedid,$start,$end,$outinterval,$datetimeformat)
     {
         $this->redis->incr("fiveseconds:exporthits");
         $feedid = (int) $feedid;
+        $start = (int) $start;
+        $end = (int) $end;
+        $outinterval = (int) $outinterval;
+        $datetimeformat = (int) $datetimeformat;
+        
+        if ($end<=$start) return array('success'=>false, 'message'=>"Request end time before start time");
         if (!$this->exist($feedid)) return array('success'=>false, 'message'=>'Feed does not exist');
-
         $engine = $this->get_engine($feedid);
         $server = $this->get_server($feedid);
         
         // Download limit
         $downloadsize = (($end - $start) / $outinterval) * 17; // 17 bytes per dp
-        if ($downloadsize>($this->csvdownloadlimit_mb*1048576)) {
-            $this->log->warn("Feed model: csv download limit exeeded downloadsize=$downloadsize feedid=$feedid");
-            return false;
+        if ($downloadsize>(25*1048576)) {
+            $this->log->warn("csv_export() CSV download limit exeeded downloadsize=$downloadsize feedid=$feedid");
+            return array('success'=>false, 'message'=>"CSV download limit exeeded downloadsize=$downloadsize");
+        }
+        
+        if ($datetimeformat == 1) {
+            global $session;
+            $userid = $this->get_field($feedid,"userid");
+            $usertimezone = $this->get_user_timezone($userid);
+        } else {
+            $usertimezone = false;
         }
 
         // Call to engine get_average method
-        return $this->server[$server][$engine]->csv_export($feedid,$start,$end,$outinterval);
+        return $this->server[$server][$engine]->csv_export($feedid,$start,$end,$outinterval,$usertimezone);
     }
 
 
@@ -539,6 +549,8 @@ class Feed
             $this->redis->hset("feed:$feedid",'size',$size);
             $total += $size;
         }
+        
+        $this->mysqli->query("UPDATE users SET `diskuse` = '$total' WHERE `id`= '$userid'");
         return $total;
     }
     

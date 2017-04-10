@@ -44,6 +44,8 @@
 
     require "process_settings.php";
     
+    // 1st try
+    $redisretry = 0;
     $redis = new Redis();
     $connected = $redis->connect($redis_server);
     if (!$connected) {
@@ -55,7 +57,9 @@
     $timelog = false;
 
     if (isset($_GET['q']) && $apikey!==false) {
-
+    
+        if ($_GET['q']=="input/post") $_GET['q'] = "input/post.json";
+        if ($_GET['q']=="input/bulk") $_GET['q'] = "input/bulk.json";
         if ($_GET['q']=="api/post.json") $_GET['q'] = "input/post.json";
         if ($_GET['q']=="api/post") $_GET['q'] = "input/post.json";
         if ($_GET['q']=="emoncms/input/post.json") $_GET['q'] = "input/post.json";

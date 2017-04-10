@@ -79,15 +79,15 @@
             array('delta',_("delta"),7,0)
         )),
         
-        'editrealtime'=> array('label'=>_("EditRealtime"), 'options'=>array(
-            array('feedid',_("feed"),1)
-        )),
-        
-        'editdaily'=> array('label'=>_("EditDaily"), 'options'=>array(
-            array('feedid',_("feed"),2)
-        )),
-        
         'multigraph' => array ('label'=>_("MultiGraph"), 'action'=>'multigraph', 'options'=>array(
             array('mid',_("mid"),8)
         ))
+        /*
+        'editrealtime'=> array('label'=>_("EditRealtime (PHPTimeSeries only)"), 'options'=>array(
+            array('feedid',_("feed"),1)
+        )),
+        
+        'editdaily'=> array('label'=>_("EditDaily (PHPTimeSeries only)"), 'options'=>array(
+            array('feedid',_("feed"),2)
+        ))*/
     );

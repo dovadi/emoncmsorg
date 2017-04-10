@@ -168,6 +168,8 @@ class PHPTimeSeries
         $fh = fopen($this->dir."feed_$feedid.MYD", 'rb');
         $filesize = filesize($this->dir."feed_$feedid.MYD");
 
+        if ($filesize==0) return array();
+        
         $data = array();
         $time = 0; $i = 0;
         $atime = 0;
@@ -218,6 +220,8 @@ class PHPTimeSeries
 
         $fh = fopen($this->dir."feed_$feedid.MYD", 'rb');
         $filesize = filesize($this->dir."feed_$feedid.MYD");
+        
+        if ($filesize==0) return array();
 
         $pos = $this->binarysearch($fh,$start,$filesize);
 
@@ -308,7 +312,7 @@ class PHPTimeSeries
 
         $fh = fopen($this->dir."feed_$feedid.MYD", 'rb');
         $filesize = filesize($this->dir."feed_$feedid.MYD");
-
+        
         if ($filesize>=9)
         {
             fseek($fh,$filesize-9);
@@ -319,7 +323,7 @@ class PHPTimeSeries
         }
         else
         {
-            return false;
+            return array('time'=>0, 'value'=>0);
         }
     }
 
@@ -432,7 +436,7 @@ class PHPTimeSeries
     
     }
     
-    public function csv_export($feedid,$start,$end,$outinterval)
+    public function csv_export($feedid,$start,$end,$outinterval,$usertimezone)
     {
         $feedid = (int) $feedid;
         $start = (int) $start;
@@ -492,6 +496,12 @@ class PHPTimeSeries
 
             $last_time = $time;
             $time = $array['time'];
+            
+            if ($usertimezone) {
+                $datetime = DateTime::createFromFormat("U", (int) $time);
+                $datetime->setTimezone(new DateTimeZone($usertimezone));
+                $time = $datetime->format("d/m/Y H:i:s");
+            }
 
             // $last_time = 0 only occur in the first run
             if (($time!=$last_time && $time>$last_time) || $last_time==0) {

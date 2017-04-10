@@ -10,7 +10,7 @@
 
     // Input Queue division levels (number of users)
     $IQL = array(
-        "L1"=>3500, // users 0 to 3500 etc...
+        "L1"=>3500,
         "L2"=>7500,
         "L3"=>11500,
         "L4"=>14000,

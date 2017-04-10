@@ -71,12 +71,18 @@ var table = {
       if (!groups[group]) {groups[group] = ""; group_num++;}
       groups[group] += table.draw_row(row);
     }
+    
+    // if (table.groupshow["Archive"]!=undefined) table.groupshow["Archive"] = false;
 
     var html = "";
     for (group in groups) {
       // Minimized group persistance, see lines: 4,92,93
       var visible = '', symbol ='<i class="icon-minus-sign"></i>'; 
-      if (table.groupshow[group]==undefined) table.groupshow[group]=true;
+      if (table.groupshow[group]==undefined) {
+          table.groupshow[group]=true;
+          if (group=="Archive") table.groupshow["Archive"] = false;
+      }
+      
       if (table.groupshow[group]==false) {symbol = '<i class="icon-plus-sign"></i>'; visible = "display:none";}
 
       if (group_num>1) {

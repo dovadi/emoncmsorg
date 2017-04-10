@@ -45,13 +45,11 @@ function fast_input_post($redis,$userid)
                     $csvi ++;
                 }
                 
-                $post_time = time();
+                $post_time = $time;
                 
                 // Start of rate limiter
-                $lasttime = 0;
-                if ($redis->exists("postlimiter:$userid:$nodeid:$key")) {
-                    $lasttime = $redis->get("postlimiter:$userid:$nodeid:$key");
-                }
+                $lasttime = $redis->get("postlimiter:$userid:$nodeid:$key");
+                if ($lasttime==null) $lasttime = 0;
                                 
                 if (($post_time-$lasttime)>=5)
                 {
@@ -176,10 +174,8 @@ function fast_input_bulk($redis,$userid)
                     );
 
                     // Start of rate limiter
-                    $lasttime = 0;
-                    if ($redis->exists("limiter:$userid:$nodeid")) {
-                        $lasttime = $redis->get("limiter:$userid:$nodeid");
-                    }
+                    $lasttime = $redis->get("limiter:$userid:$nodeid");
+                    if ($lasttime==null) $lasttime = 0;
                     
                     $post_time = $time;
                     if (($post_time-$lasttime)>=1)

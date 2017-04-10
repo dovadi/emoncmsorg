@@ -157,7 +157,7 @@ class RemotePHPFina
         return json_decode(file_get_contents($this->path."meta?id=".$id));
     }
     
-    public function csv_export($id,$start,$end,$interval)
+    public function csv_export($id,$start,$end,$interval,$usertimezone)
     {
         // There is no need for the browser to cache the output
         header("Cache-Control: no-cache, no-store, must-revalidate");
@@ -173,7 +173,7 @@ class RemotePHPFina
         // Write to output stream
         $target = @fopen( 'php://output', 'w' );
         
-        if ($source = @fopen($this->path."csvexport?id=".$id."&start=".$start."&end=".$end."&interval=".$interval,'r'))
+        if ($source = @fopen($this->path."csvexport?id=".$id."&start=".$start."&end=".$end."&interval=".$interval."&usertimezone=".$usertimezone,'r'))
         {
             for (;;)
             {

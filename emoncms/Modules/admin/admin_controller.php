@@ -53,10 +53,57 @@ function admin_controller()
         
 
 
+
+        if ($route->action == 'numberofusers' && $session['write'] && $session['admin'])
+        {
+            $route->format = "text";
+            $result = $mysqli->query("SELECT COUNT(*) FROM users");
+            $row = $result->fetch_array();
+            $result = (int) $row[0];
+        }
+
         if ($route->action == 'userlist' && $session['write'] && $session['admin'])
         {
+
+            $limit = "";
+            if (isset($_GET['page']) && isset($_GET['perpage'])) {
+                $page = (int) $_GET['page'];
+                $perpage = (int) $_GET['perpage'];
+                $offset = $page * $perpage;
+                $limit = "LIMIT $perpage OFFSET $offset";
+            }
+            
+            $orderby = "diskuse";
+            if (isset($_GET['orderby'])) {
+                if ($_GET['orderby']=="id") $orderby = "id";
+                if ($_GET['orderby']=="username") $orderby = "username";
+                if ($_GET['orderby']=="email") $orderby = "email";
+                if ($_GET['orderby']=="diskuse") $orderby = "diskuse";
+                if ($_GET['orderby']=="inputs") $orderby = "inputs";
+                if ($_GET['orderby']=="lastactive") $orderby = "lastactive";
+                if ($_GET['orderby']=="activefeeds") $orderby = "activefeeds";
+                if ($_GET['orderby']=="feeds") $orderby = "feeds";
+            }
+            
+            $order = "DESC";
+            if (isset($_GET['order'])) {
+                if ($_GET['order']=="decending") $order = "DESC";
+                if ($_GET['order']=="ascending") $order = "ASC";
+            }
+            
+            $search = false;
+            $searchstr = "";
+            if (isset($_GET['search'])) {
+                $search = $_GET['search'];
+                $search_out = preg_replace('/[^\p{N}\p{L}_\s-]/u','',$search);
+                if ($search_out!=$search || $search=="") { 
+                    $search = false; 
+                }
+                if ($search!==false) $searchstr = "WHERE username LIKE '%$search%' OR email LIKE '%$search%'";
+            }
+        
             $data = array();
-            $result = $mysqli->query("SELECT id,username,email FROM users");
+            $result = $mysqli->query("SELECT id,username,email,diskuse,inputs,activefeeds,feeds,phptimeseries,phpfina,server0,lastactive FROM users $searchstr ORDER BY $orderby $order ".$limit);
             
             while ($row = $result->fetch_object()) {
                 $userid = $row->id;

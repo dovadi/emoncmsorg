@@ -17,7 +17,23 @@ $schema['users'] = array(
     'location'=>array('type'=>'varchar(30)', 'default'=>''),
     'timezone' => array('type'=>'varchar(64)', 'default'=>'UTC'),
     'language' => array('type' => 'varchar(5)', 'default'=>'en_EN'),
-    'bio' => array('type' => 'text', 'default'=>'')
+    'bio' => array('type' => 'text', 'default'=>''),
+    
+    // Usage 
+    'lastactive'=> array('type' => 'int(11)'),
+    
+    'phptimeseries'=> array('type' => 'int(11)'),
+    'phpfina'=> array('type' => 'int(11)'),
+    
+    'server0'=> array('type' => 'int(11)'),
+    //'server1'=> array('type' => 'int(11)'),
+    //'server2'=> array('type' => 'int(11)'),
+    
+    'inputs'=> array('type' => 'int(11)'),
+    'activeinputs'=> array('type' => 'int(11)'),
+    'feeds'=> array('type' => 'int(11)'),
+    'activefeeds'=> array('type' => 'int(11)'),
+    'diskuse' => array('type' => 'bigint(20)')
 );
 
 $schema['rememberme'] = array(

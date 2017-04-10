@@ -1,5 +1,7 @@
 <?php
 
+global $path;
+
 // This timeseries engine implements:
 // Fixed Interval No Averaging
 
@@ -105,7 +107,7 @@ class PHPFina
         if ($timestamp < $meta->start_time) {
             $this->log->warn("PHPFina:post timestamp older than feed start time id=$id");
             return false; // in the past
-        }	
+        }
 
         // Calculate position in base data file of datapoint
         $pos = floor(($timestamp - $meta->start_time) / $meta->interval);
@@ -209,7 +211,7 @@ class PHPFina
         if (!$meta = $this->get_meta($name)) return array('success'=>false, 'message'=>"error reading meta data $meta");
         // $meta->npoints = $this->get_npoints($name);
         
-        if ($limitinterval && $interval<$meta->interval) $interval = $meta->interval; 
+        if ($limitinterval && $interval<$meta->interval) $interval = $meta->interval;
 
         $data = array();
         $time = 0; $i = 0;
@@ -313,7 +315,7 @@ class PHPFina
         return $data;
     }
     
-    public function get_data_DMY($id,$start,$end,$mode,$timezone) 
+    public function get_data_DMY($id,$start,$end,$mode,$timezone)
     {
         if ($mode!="daily" && $mode!="weekly" && $mode!="monthly") return false;
         
@@ -575,12 +577,12 @@ class PHPFina
         } while ($npadding); 
     }
     
-    public function csv_export($id,$start,$end,$outinterval)
-    {
-        $id = intval($id);
-        $start = intval($start);
-        $end = intval($end);
-        $outinterval= (int) $outinterval;
+    public function csv_export($id,$start,$end,$outinterval,$usertimezone)
+    {   
+        $id = (int) $id;
+        $start = (int) $start;
+        $end = (int) $end;
+        $outinterval = (int) $outinterval;
 
         // If meta data file does not exist then exit
         if (!$meta = $this->get_meta($id)) return false;
@@ -645,7 +647,13 @@ class PHPFina
 
             // calculate the datapoint time
             $time = $meta->start_time + $pos * $meta->interval;
-
+            
+            if ($usertimezone) {
+                $datetime = DateTime::createFromFormat("U", (int) $time);
+                $datetime->setTimezone(new DateTimeZone($usertimezone));
+                $time = $datetime->format("d/m/Y H:i:s");
+            }
+            
             // add to the data array if its not a nan value
             if (!is_nan($val[1])) fwrite($exportfh, $time.",".number_format($val[1],2,'.','')."\n");
 
@@ -663,25 +671,25 @@ class PHPFina
     
     Averaging (mean)
     
-    The standard data request method returns the value of the data point at the specified timestamp 
+    The standard data request method returns the value of the data point at the specified timestamp
     this works well for most data requests and is the required method for extracting accumulating kWh data
     
     However its useful for many applicaitons to be able to extract the average value for a given period
     An example would be requesting hourly temperature over number of days and wanting to see the average temperature for each hour
     rather than the temperature at the start of each hour.
     
-    Emoncms initially did this with a dedicated feed engine called PHPFiwa the implementation of that engine calculated the average 
+    Emoncms initially did this with a dedicated feed engine called PHPFiwa the implementation of that engine calculated the average
     values on the fly as the data came in which is not a particularly write efficient method as each average layer is opened for every
     update and only one 4 byte float is appended.
     
-    A better approach is to post process the average layers when the data request is made and to cache the calculated averages at this 
+    A better approach is to post process the average layers when the data request is made and to cache the calculated averages at this
     point. This significantly reduces the write load and converts the averaged layers into a recompilable cached property rather than
     and integral part of the core engine.
     
     */
         
     public function get_average($id,$start,$end,$interval)
-    {   
+    {
         $start = intval($start/1000);
         $end = intval($end/1000);
         $interval= (int) $interval;
@@ -713,9 +721,9 @@ class PHPFina
         $meta = new stdClass();
         $metafile = fopen($dir.$id.".meta", 'rb');
         fseek($metafile,8);
-        $tmp = unpack("I",fread($metafile,4)); 
+        $tmp = unpack("I",fread($metafile,4));
         $meta->interval = $tmp[1];
-        $tmp = unpack("I",fread($metafile,4)); 
+        $tmp = unpack("I",fread($metafile,4));
         $meta->start_time = $tmp[1];
         fclose($metafile);
         $meta->npoints = floor(filesize($dir.$id.".dat") / 4.0);
@@ -798,11 +806,11 @@ class PHPFina
         fwrite($fh,$id." ".$total_read_count."dp ".$proctime."ms\n");
         fclose($fh);
         
-        return $data;        
+        return $data;
     }
     
     public function get_average_DMY($id,$start,$end,$mode,$timezone)
-    {   
+    {
         $start = intval($start/1000);
         $end = intval($end/1000);
         
@@ -834,9 +842,9 @@ class PHPFina
         $meta = new stdClass();
         $metafile = fopen($dir.$id.".meta", 'rb');
         fseek($metafile,8);
-        $tmp = unpack("I",fread($metafile,4)); 
+        $tmp = unpack("I",fread($metafile,4));
         $meta->interval = $tmp[1];
-        $tmp = unpack("I",fread($metafile,4)); 
+        $tmp = unpack("I",fread($metafile,4));
         $meta->start_time = $tmp[1];
         fclose($metafile);
         $meta->npoints = floor(filesize($dir.$id.".dat") / 4.0);

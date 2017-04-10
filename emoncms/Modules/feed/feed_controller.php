@@ -98,6 +98,9 @@ function feed_controller()
                             $result = $feed->get_average_DMY($feedid,get('start'),get('end'),get('mode'));
                         }
                     }
+                    
+                    else if ($route->action == "csvexport") $feed->csv_export($feedid,get('start'),get('end'),get('interval'),get('timeformat'));
+                    
                 }
 
                 // write session required
@@ -121,8 +124,6 @@ function feed_controller()
                         $result = $feed->update_data($feedid,$updatetime,get("time"),get('value'));
                     }
                     else if ($route->action == "delete") $result = $feed->delete($feedid);
-                    
-                    else if ($route->action == "csvexport") $feed->csv_export($feedid,get('start'),get('end'),get('interval'));
                     
                     else if ($route->action == "export") {
                         if ($f['engine']==Engine::PHPTIMESERIES) $result = $feed->phptimeseries_export($feedid,get('start'));

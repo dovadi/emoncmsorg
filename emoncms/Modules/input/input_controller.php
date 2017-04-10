@@ -209,7 +209,7 @@ function input_controller()
         // input/post.json?node=10&csv=100,200,300
 
         if ($route->action == 'post')
-        {
+        {   
             // echo "ok"; die;
             $redis->incr("fiveseconds:inputhits");
             $valid = true; $error = "";
