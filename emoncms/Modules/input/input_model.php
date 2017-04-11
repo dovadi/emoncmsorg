@@ -42,7 +42,7 @@ class Input
         $nodeid = preg_replace('/[^\p{N}\p{L}_\s-.]/u','',$nodeid);
         if (strlen($nodeid)>16) return false;
         $name = preg_replace('/[^\p{N}\p{L}_\s-.]/u','',$name);
-        if (strlen($name)>16) return false;
+        if (strlen($name)>64) return false;
         
         // Add to mysql
         $this->mysqli->query("INSERT INTO input (userid,name,nodeid) VALUES ('$userid','$name','$nodeid')");

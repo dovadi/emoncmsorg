@@ -9,7 +9,7 @@ function fast_input_post($redis,$userid)
     if (isset($_GET['node'])) $_nodeid = $_GET['node'];
     $nodeid = preg_replace('/[^\p{N}\p{L}_\s-.]/u','',$_nodeid);
     if ($nodeid!=$_nodeid) return "Error: invalid node name";
-    if (strlen($nodeid)>16) return "Error: invalid node name length";
+    if (strlen($nodeid)>16) return "Error: node name must be 16 characters or less";
     
     // input/post time
     if (isset($_GET['time'])) $time = (int) $_GET['time']; else $time = time();
@@ -34,7 +34,7 @@ function fast_input_post($redis,$userid)
         if (isset($keyvalue[1])) {
             $key = $keyvalue[0];
             if ($key=='') return "Error: Format error, json key missing or invalid character";
-            if (strlen($key)>16) return "Error: invalid node key length";
+            if (strlen($key)>64) return "Error: input name must be 64 characters or less";
             $value = (float) $keyvalue[1];
         } else {
             $key = $csvi+1;
