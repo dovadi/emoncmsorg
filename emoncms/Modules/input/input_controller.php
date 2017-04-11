@@ -43,7 +43,10 @@ function input_controller()
     if ($route->action == 'bulk') $result = fast_input_bulk($redis,$session['userid']);
     else if ($route->action == 'post') $result = fast_input_post($redis,$session['userid']);
     // --------------------------------------------------------------------------------
-    else if ($route->action == "clean") $result = $input->clean($session['userid']);
+    else if ($route->action == "clean") {
+        $route->format = 'text';
+        $result = $input->clean($session['userid']);
+    }
     else if ($route->action == "list") $result = $input->getlist($session['userid']);
     else if ($route->action == "getinputs") $result = $input->get_inputs($session['userid']);
     else if ($route->action == "getallprocesses") $result = $process->get_process_list();

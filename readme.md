@@ -40,11 +40,9 @@ At this point no input will be created as we need to start up an inputqueue proc
 
 1) Create script-settings.php from default.script-settings.php in MainServerScripts
 
-2) Open MainServerScripts/inputqueue/input_queue_processor_1.php in an editor. Change line:
+2) Copy script-settings.php to /etc/emoncms/script-settings.php
 
-    require "/home/username/scripts/script-settings.php";
-    
-to the location of script-settings.php on your server.
+    sudo cp script-settings.php /etc/emoncms/script-settings.php
 
 3) Set default script throttle delay's (these need to be adjusted to account for load and input/feed throughput)
 
@@ -67,13 +65,7 @@ The output should look like this:
 
 Create a feed from the inputs created above. While the feed appears to update no data will be written to disk as the datapoints are being queued up in a storage server queue.
 
-1. Open to edit MainServerScripts/storageserver/storageserver0.php in an editor. Change line
-
-    require "/home/username/scripts/script-settings.php";
-    
-to the location of script-settings.php on your server.
-
-2) Run storageserver0.php from terminal temporarily for testing:
+Run storageserver0.php from terminal temporarily for testing:
 
     $ sudo php MainServerScripts/storageserver/storageserver0.php
     

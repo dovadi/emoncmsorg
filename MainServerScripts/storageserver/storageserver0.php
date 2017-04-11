@@ -23,7 +23,7 @@ ini_set('display_errors', 'on');
 $fp = fopen("storageserver0lock", "w");
 if (! flock($fp, LOCK_EX | LOCK_NB)) { echo "Already running\n"; die; }
 
-require "/home/username/scripts/script-settings.php";
+require "/etc/emoncms/script-settings.php";
 chdir($emoncms_root);
 
 require "process_settings.php";

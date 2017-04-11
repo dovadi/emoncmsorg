@@ -18,7 +18,7 @@
     define('EMONCMS_EXEC', 1);
 
     // Load common settings
-    require "/home/username/scripts/script-settings.php";
+    require "/etc/emoncms/script-settings.php";
     
     // Set error log location
     ini_set("error_log", "$log_location/inputqueue-error-$IQid.log");
