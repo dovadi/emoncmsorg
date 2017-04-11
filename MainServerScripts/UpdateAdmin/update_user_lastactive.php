@@ -7,7 +7,7 @@
   chdir("/var/www/emoncms");
 
   require "process_settings.php";
-  require "Modules/log/EmonLogger.php";
+  require "Lib/EmonLogger.php";
   $mysqli = @new mysqli($server,$username,$password,$database);
 
   $redis = new Redis();
