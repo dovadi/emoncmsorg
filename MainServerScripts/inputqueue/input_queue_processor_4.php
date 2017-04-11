@@ -102,40 +102,27 @@
             $tmp = array();
 
             foreach ($data as $name => $value)
-            {
-            
-                $bypassnodelimit = false;
-                foreach ($specialuser as $nbsu)
-                {
-                  if ($nbsu==$userid) $bypassnodelimit = true;
-                }
-            
-                if ($input->check_node_id_valid($nodeid) || $bypassnodelimit)
-                {
-                    if (!isset($dbinputs[$nodeid][$name])) {
-                        $inputid = $input->create_input($userid, $nodeid, $name);
-                        $dbinputs[$nodeid][$name] = true;
+            {            
+                if (!isset($dbinputs[$nodeid][$name])) {
+                    $inputid = $input->create_input($userid, $nodeid, $name);
+                    if ($inputid>0) {
                         $dbinputs[$nodeid][$name] = array('id'=>$inputid);
                         $input->set_timevalue($dbinputs[$nodeid][$name]['id'],$time,$value);
-                    } else {
-                        $inputid = $dbinputs[$nodeid][$name]['id'];
-                        // Start of rate limiter
-                        $lasttime = 0; if (isset($inputlimiter[$inputid])) $lasttime = $inputlimiter[$inputid];
-                        if (($time-$lasttime)>=4)
-                        {
-                            $inputlimiter[$inputid] = $time;
-                            $input->set_timevalue($dbinputs[$nodeid][$name]['id'],$time,$value);
-                            if ($dbinputs[$nodeid][$name]['processList']) {
-                                $tmp[] = array('value'=>$value,'processList'=>$dbinputs[$nodeid][$name]['processList']);
-                            }
-                        } else { 
-                            //error_log("Error: input $userid $inputid $time - $lasttime posting too fast, dropped"); 
-                        }
                     }
-                }
-                else
-                {
-                  // error_log("Nodeid $nodeid is not valid user $userid"); 
+                } else {
+                    $inputid = $dbinputs[$nodeid][$name]['id'];
+                    // Start of rate limiter
+                    $lasttime = 0; if (isset($inputlimiter[$inputid])) $lasttime = $inputlimiter[$inputid];
+                    if (($time-$lasttime)>=4)
+                    {
+                        $inputlimiter[$inputid] = $time;
+                        $input->set_timevalue($dbinputs[$nodeid][$name]['id'],$time,$value);
+                        if ($dbinputs[$nodeid][$name]['processList']) {
+                            $tmp[] = array('value'=>$value,'processList'=>$dbinputs[$nodeid][$name]['processList']);
+                        }
+                    } else { 
+                        //error_log("Error: input $userid $inputid $time - $lasttime posting too fast, dropped"); 
+                    }
                 }
             }
             

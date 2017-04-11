@@ -49,6 +49,8 @@ class Input
         // of the potential issues for now but it may be good look at catching
         // non-integer numbers at some point
         
+        return true;
+        
         if (!is_numeric ($nodeid))
         {
             return false;
@@ -76,15 +78,20 @@ class Input
     {
         global $max_node_id_limit;
         $userid = (int) $userid;
-        $nodeid = (int) $nodeid;
-        $name = preg_replace('/[^\w\s-.]/','',$name);
+        
+        $nodeid = preg_replace('/[^\p{N}\p{L}_\s-.]/u','',$nodeid);
+        if (strlen($nodeid)>16) return false;
+        $name = preg_replace('/[^\p{N}\p{L}_\s-.]/u','',$name);
+        if (strlen($name)>16) return false;
         
         // Add to mysql
         $this->mysqli->query("INSERT INTO input (userid,name,nodeid) VALUES ('$userid','$name','$nodeid')");
         $id = $this->mysqli->insert_id;
         // Add to redis
-        $this->redis->sAdd("user:inputs:$userid", $id);
-        $this->redis->hMSet("input:$id",array('id'=>$id,'nodeid'=>$nodeid,'name'=>$name,'description'=>"", 'processList'=>""));
+        if ($id>0) {
+            $this->redis->sAdd("user:inputs:$userid", $id);
+            $this->redis->hMSet("input:$id",array('id'=>$id,'nodeid'=>$nodeid,'name'=>$name,'description'=>"", 'processList'=>""));
+        }
         return $id;
 
     }
@@ -126,17 +133,16 @@ class Input
         $fields = json_decode(stripslashes($fields));
 
         $array = array();
-
-        // Repeat this line changing the field name to add fields that can be updated:
-        if (isset($fields->description)) $array[] = "`description` = '".preg_replace('/[^\w\s-]/','',$fields->description)."'";
-        if (isset($fields->name)) $array[] = "`name` = '".preg_replace('/[^\w\s-.]/','',$fields->name)."'";
+        
+        if (isset($fields->description)) {
+            $description = preg_replace('/[^\w\s-]/','',$fields->description);
+            $array[] = "`description` = '$description'";
+            $this->redis->hset("input:$id",'description',$description);
+        }
+                
         // Convert to a comma seperated string for the mysql query
         $fieldstr = implode(",",$array);
         $this->mysqli->query("UPDATE input SET ".$fieldstr." WHERE `id` = '$id'");
-
-        // UPDATE REDIS
-        if (isset($fields->name)) $this->redis->hset("input:$id",'name',$fields->name);
-        if (isset($fields->description)) $this->redis->hset("input:$id",'description',$fields->description);
 
         if ($this->mysqli->affected_rows>0){
             return array('success'=>true, 'message'=>'Field updated');

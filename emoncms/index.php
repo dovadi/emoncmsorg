@@ -58,14 +58,14 @@
 
     if (isset($_GET['q']) && $apikey!==false) {
     
-        if ($_GET['q']=="input/post") $_GET['q'] = "input/post.json";
-        if ($_GET['q']=="input/bulk") $_GET['q'] = "input/bulk.json";
-        if ($_GET['q']=="api/post.json") $_GET['q'] = "input/post.json";
-        if ($_GET['q']=="api/post") $_GET['q'] = "input/post.json";
-        if ($_GET['q']=="emoncms/input/post.json") $_GET['q'] = "input/post.json";
-        if ($_GET['q']=="emoncms/input/bulk.json") $_GET['q'] = "input/bulk.json";
+        if ($_GET['q']=="input/post.json") $_GET['q'] = "input/post";
+        if ($_GET['q']=="input/bulk.json") $_GET['q'] = "input/bulk";
+        if ($_GET['q']=="api/post.json") $_GET['q'] = "input/post";
+        if ($_GET['q']=="api/post") $_GET['q'] = "input/post";
+        if ($_GET['q']=="emoncms/input/post.json") $_GET['q'] = "input/post";
+        if ($_GET['q']=="emoncms/input/bulk.json") $_GET['q'] = "input/bulk";
 
-        if ($_GET['q']=="input/post.json") {
+        if ($_GET['q']=="input/post") {
             //echo "ok"; die;
             if ($redis->exists("writeapikey:$apikey")) {
                 $userid = $redis->get("writeapikey:$apikey");
@@ -78,7 +78,7 @@
             }
         }
 
-        else if ($_GET['q']=="input/bulk.json") {
+        else if ($_GET['q']=="input/bulk") {
             //echo "ok"; die;
             if ($redis->exists("writeapikey:$apikey")) {
                 $userid = $redis->get("writeapikey:$apikey");

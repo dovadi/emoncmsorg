@@ -135,8 +135,8 @@ option.select-hr { border-bottom: 1px dotted #000; }
     table.fields = {
         //'id':{'type':"fixed"},
         'nodeid':{'title':'<?php echo _("Node:"); ?>','type':"fixed"},
-        'name':{'title':'<?php echo _("Key"); ?>','type':"text"},
-        'description':{'title':'<?php echo _("Name"); ?>','type':"text"},
+        'name':{'title':'<?php echo _("Key"); ?>','type':"fixed"},
+        'description':{'title':'<?php echo _("Description"); ?>','type':"text"},
         'processList':{'title':'<?php echo _('Process list'); ?>','type':"processlist"},
         'time':{'title':'last updated', 'type':"updated"},
         'value':{'type':"value"},
