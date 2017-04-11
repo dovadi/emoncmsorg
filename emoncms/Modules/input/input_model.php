@@ -26,52 +26,12 @@ class Input
         $this->feed = $feed;
         $this->redis = $redis;
     }
-    // Check a nodeID against the current node-ID limits to see if it's valid
-    // True = Valid
-    // False = not valid
-    public function check_node_id_valid($nodeid)
+
+    public function validate_access($dbinputs, $nodeid)
     {
         global $max_node_id_limit;
-        
-        // As highlighted by developer:fake-name PHP's doesnt have a function
-        // for checking if a string will cast to a valid integer.
-        //
-        // is_numeric is the closest function but it allows input of:
-        // Octal, e-notation (+0123.45e6) & Hex. 
-        // 
-        // Casting with (int) will convert input such as Array({stuff}) to 1 
-        // whereas NAN would be a more appropriate result.  
-        //
-        // Other languages such as Python will return an error if you try and 
-        // cast a variable in this way.
-        //
-        // checking against isNumeric will probably catch *most*
-        // of the potential issues for now but it may be good look at catching
-        // non-integer numbers at some point
-        
+        if (!isset($dbinputs[$nodeid]) && (count($dbinputs) >= $max_node_id_limit )) return false;
         return true;
-        
-        if (!is_numeric ($nodeid))
-        {
-            return false;
-        }
-
-        $nodeid = (int) $nodeid;
-
-        if (!isset($max_node_id_limit))
-        {
-            $max_node_id_limit = 32;    // Default to 32 if not overridden
-        }
-
-        if ($nodeid<$max_node_id_limit)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-
     }
     
     public function create_input($userid, $nodeid, $name)

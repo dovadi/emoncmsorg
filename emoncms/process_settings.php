@@ -34,6 +34,7 @@ if(file_exists(dirname(__FILE__)."/settings.php"))
 
     if (!isset($redis_enabled)) $redis_enabled = true;
     if (!isset($redis_server)) $redis_server = "localhost";
+    if (!isset($max_node_id_limit)) $max_node_id_limit = 32;
 
     if ($error_out!="") {
       echo "<div style='width:600px; background-color:#eee; padding:20px; font-family:arial;'>";

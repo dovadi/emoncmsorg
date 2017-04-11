@@ -98,35 +98,39 @@
             // Load current user input meta data
             // It would be good to avoid repeated calls to this
             $dbinputs = $input->get_inputs($userid);
+            $validate_access = $input->validate_access($dbinputs, $nodeid);
+            
+            if ($validate_access)
+            {
+                $tmp = array();
 
-            $tmp = array();
-
-            foreach ($data as $name => $value)
-            {            
-                if (!isset($dbinputs[$nodeid][$name])) {
-                    $inputid = $input->create_input($userid, $nodeid, $name);
-                    if ($inputid>0) {
-                        $dbinputs[$nodeid][$name] = array('id'=>$inputid);
-                        $input->set_timevalue($dbinputs[$nodeid][$name]['id'],$time,$value);
-                    }
-                } else {
-                    $inputid = $dbinputs[$nodeid][$name]['id'];
-                    // Start of rate limiter
-                    $lasttime = 0; if (isset($inputlimiter[$inputid])) $lasttime = $inputlimiter[$inputid];
-                    if (($time-$lasttime)>=4)
-                    {
-                        $inputlimiter[$inputid] = $time;
-                        $input->set_timevalue($dbinputs[$nodeid][$name]['id'],$time,$value);
-                        if ($dbinputs[$nodeid][$name]['processList']) {
-                            $tmp[] = array('value'=>$value,'processList'=>$dbinputs[$nodeid][$name]['processList']);
+                foreach ($data as $name => $value)
+                {            
+                    if (!isset($dbinputs[$nodeid][$name])) {
+                        $inputid = $input->create_input($userid, $nodeid, $name);
+                        if ($inputid>0) {
+                            $dbinputs[$nodeid][$name] = array('id'=>$inputid);
+                            $input->set_timevalue($dbinputs[$nodeid][$name]['id'],$time,$value);
                         }
-                    } else { 
-                        //error_log("Error: input $userid $inputid $time - $lasttime posting too fast, dropped"); 
+                    } else {
+                        $inputid = $dbinputs[$nodeid][$name]['id'];
+                        // Start of rate limiter
+                        $lasttime = 0; if (isset($inputlimiter[$inputid])) $lasttime = $inputlimiter[$inputid];
+                        if (($time-$lasttime)>=4)
+                        {
+                            $inputlimiter[$inputid] = $time;
+                            $input->set_timevalue($dbinputs[$nodeid][$name]['id'],$time,$value);
+                            if ($dbinputs[$nodeid][$name]['processList']) {
+                                $tmp[] = array('value'=>$value,'processList'=>$dbinputs[$nodeid][$name]['processList']);
+                            }
+                        } else { 
+                            //error_log("Error: input $userid $inputid $time - $lasttime posting too fast, dropped"); 
+                        }
                     }
                 }
+                
+                foreach ($tmp as $i) $process->input($time,$i['value'],$i['processList']);
             }
-            
-            foreach ($tmp as $i) $process->input($time,$i['value'],$i['processList']);
             
             $wrktime = (int)((microtime(true) - $wrkstart)*1000000);
             if ($wrktime>100000) error_log("$userid, $nodeid, $wrktime");
