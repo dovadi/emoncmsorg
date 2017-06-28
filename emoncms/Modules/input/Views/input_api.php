@@ -53,7 +53,7 @@
 <p><b><?php echo _('Input actions'); ?></b>
 <table class="table">
 <tr><td><?php echo _('List of inputs'); ?></td><td><a href="<?php echo $path; ?>input/list"><?php echo $path; ?>input/list</a></td></tr>
-<tr><td><?php echo _('Delete an input'); ?></td><td><a href="<?php echo $path; ?>input/delete?id=1"><?php echo $path; ?>input/delete?id=1</a></td></tr>
+<tr><td><?php echo _('Delete an input'); ?></td><td><a href="<?php echo $path; ?>input/delete?inputid=1"><?php echo $path; ?>input/delete?id=1</a></td></tr>
 </table>
 
 <p><b><?php echo _('Input process actions'); ?></b></p>
