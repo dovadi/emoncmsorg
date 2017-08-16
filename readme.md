@@ -81,6 +81,11 @@ Update the mysql database from the administration interface once installed to cr
 
 - [Stunnel configuration](stunnel.md)
 
+
+### Architecture
+
+![Architecture1](docs/images/emoncms_scale.png)
+
 ### Licence
 
 All Emoncms code is released under the GNU Affero General Public License. See COPYRIGHT.txt and LICENSE.txt.
