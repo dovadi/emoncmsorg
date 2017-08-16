@@ -84,7 +84,9 @@ Update the mysql database from the administration interface once installed to cr
 
 ### Architecture
 
-![Architecture1](docs/images/emoncms_scale.png)
+Diagram of current (Aug 2017) emoncms.org input processing and data storage architecture:
+
+![Architecture1](docs/images/emoncmsorg_scale.png)
 
 ### Licence
 
