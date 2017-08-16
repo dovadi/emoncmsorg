@@ -94,9 +94,15 @@ Diagram of current (Aug 2017) emoncms.org input processing and data storage arch
 4. The input processing queues then work through the inputs in parallel at a speed that is largely determined by the latency on the redis and mysql socket connections.
 5. The resulting feed insert/updates are passed to their respective storage queues 0,1,2.
 6. Storage server 0 is on the main server alongside the full emoncms installation.
-7. Storage server 1 and 2 are on seperate machines. Feed data to be written is streamed across to these servers via a socket stream over an encrypted stunnel.
+7. Storage server 1 and 2 are on separate machines. Feed data to be written is streamed across to these servers via a socket stream over an encrypted stunnel.
 
-The present implementation provides storage server scalability and has allowed emoncms to grow for a number of years. It does not however provide sufficient scalability of the entry point (apache2) and input processing stage as these are all running on a single machine. With an increasing number of requests arriving at emoncms.org an increasing number of apache2 instances are spun up eating up cpu and memory.
+The present implementation provides storage server scalability and has allowed emoncms to grow for a number of years. It does not however provide sufficient scalability of the entry point (apache2) and input processing stage as these are all running on a single machine. With an increasing number of requests arriving at emoncms.org an increasing number of apache2 instances are spun up eating up cpu and memory. At the same time there is plenty of idle cpu and memory on the seperate storage servers.
+
+An alternative approach could be to split emoncms.org more fully over multiple servers so that each server hosts a share of requests, input processing and storage. Each server would be responsible for a block of users. The mysql database is located centrally ensuring that all user-id's and feed-id's are unique across emoncms.org. Each server has its own redis server for caching of fast changing feed meta data such as last time and value limiting the request volume to the central mysql server. 
+
+This solution adds the complexity of different entry points e.g: s0.emoncms.org, s1.emoncms.org. Requesting data across multiple servers may also become more complicated.
+
+![Architecture2](docs/images/emoncmsorg_scale2.png)
 
 ### Licence
 
