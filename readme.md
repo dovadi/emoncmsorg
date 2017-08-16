@@ -88,6 +88,16 @@ Diagram of current (Aug 2017) emoncms.org input processing and data storage arch
 
 ![Architecture1](docs/images/emoncmsorg_scale.png)
 
+1. All requests including data from monitoring equipment arrives at the emoncms front controller index.php on emoncms.org. These requests are a mixture of HTTP and HTTPS requests.
+2. For input/post and input/bulk data posts, index.php determines the target user from the apikey in the request.
+3. These requests are then passed to a script called fast_input.php which decodes the post and bulk data before directing the input data into 6 input processing queues, split by userid e.g: users 1 to 3500 are directed to input queue 1.
+4. The input processing queues then work through the inputs in parallel at a speed that is largely determined by the latency on the redis and mysql socket connections.
+5. The resulting feed insert/updates are passed to their respective storage queues 0,1,2.
+6. Storage server 0 is on the main server alongside the full emoncms installation.
+7. Storage server 1 and 2 are on seperate machines. Feed data to be written is streamed across to these servers via a socket stream over an encrypted stunnel.
+
+The present implementation provides storage server scalability and has allowed emoncms to grow for a number of years. It does not however provide sufficient scalability of the entry point (apache2) and input processing stage as these are all running on a single machine. With an increasing number of requests arriving at emoncms.org an increasing number of apache2 instances are spun up eating up cpu and memory.
+
 ### Licence
 
 All Emoncms code is released under the GNU Affero General Public License. See COPYRIGHT.txt and LICENSE.txt.
