@@ -16,12 +16,12 @@ function input_controller()
 {
     //return array('content'=>"ok");
 
-    global $path, $mysqli, $redis, $user, $session, $route, $max_node_id_limit, $feed_settings, $IQL;
+    global $path, $mysqli, $redis, $user, $session, $route, $max_node_id_limit, $feed_settings, $IQL,$param;
     
     // There are no actions in the input module that can be performed with less than write privileges
     if (!isset($session['write'])) return array('content'=>false);
     if (!$session['write']) return array('content'=>false);
-
+    
     global $feed;
     $result = false;
 
@@ -42,7 +42,7 @@ function input_controller()
     // }
     
     require_once "Modules/input/input_methods.php";
-    // $inputMethods = new InputMethods($mysqli,$redis,$user,$input,$feed,$process,$device);
+    $inputMethods = new InputMethods($redis);
 
     // Change default route to json
     $route->format = 'json';
@@ -51,14 +51,21 @@ function input_controller()
     // input/post
     // ------------------------------------------------------------------------
     if ($route->action == 'post') {
-        $result = fast_input_post($redis,$session['userid']);
+        $result = $inputMethods->post($session['userid']);
+        if ($result=="ok") {
+            if ($param->exists('fulljson')) $result = '{"success": true}';
+            if ($param->sha256base64_response) $result = $param->sha256base64_response;
+        }
     }
     
     // ------------------------------------------------------------------------
     // input/bulk
     // ------------------------------------------------------------------------
     else if ($route->action == 'bulk') {
-        $result = fast_input_bulk($redis,$session['userid']);
+        $result = $inputMethods->bulk($session['userid']);
+        if ($result=="ok") {
+            if ($param->sha256base64_response) $result = $param->sha256base64_response;
+        }
     }
     
     // --------------------------------------------

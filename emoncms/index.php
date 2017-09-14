@@ -20,15 +20,28 @@
 
     define('EMONCMS_EXEC', 1);
 
+    require "process_settings.php";
+    require "core.php";
+    require "route.php";
+    require "param.php";
+
     $apikey = false;
     if (isset($_GET['apikey'])) {
         $apikey = $_GET['apikey'];
     } else if (isset($_POST['apikey'])) {
         $apikey = $_POST['apikey'];
     } else if (isset($_SERVER["HTTP_AUTHORIZATION"])) {
-        $apikey = str_replace('Bearer ', '', $_SERVER["HTTP_AUTHORIZATION"]);
+        // Support passing apikey on Authorization header per rfc6750, like example:
+        //      GET /resource HTTP/1.1
+        //      Host: server.example.com
+        //      Authorization: Bearer THE_API_KEY_HERE
+        
+        if (isset($_SERVER["CONTENT_TYPE"]) && $_SERVER["CONTENT_TYPE"]=="aes128cbc") {
+            // If content_type is AES128CBC
+        } else {
+            $apikey = str_replace('Bearer ', '', $_SERVER["HTTP_AUTHORIZATION"]);
+        }
     }
-
 
     // UNCOMMENT TO PUT THE SITE OFFLINE!!!!!!!!!
     /*
@@ -41,17 +54,19 @@
         die;
     }*/
 
-
-    require "process_settings.php";
-    
-    // 1st try
-    $redisretry = 0;
     $redis = new Redis();
     $connected = $redis->connect($redis_server);
     if (!$connected) {
         echo "Can't connect to redis database"; die;
     }
     $redis->incr('fiveseconds:totalhits');
+
+    // 5) Get route and load controller
+    $route = new Route(get('q'));
+    
+    // Load get/post/encrypted parameters - only used by input/post and input/bulk API's
+    $session = false;
+    $param = new Param($route,$redis);
     
     $iplog = false;
     $timelog = false;
@@ -67,13 +82,14 @@
 
         if ($_GET['q']=="input/post") {
             //echo "ok"; die;
-            if ($redis->exists("writeapikey:$apikey")) {
-                $userid = $redis->get("writeapikey:$apikey");
+            $userid = $redis->get("writeapikey:$apikey");
+            if ($userid!==false) {
                 if ($iplog) $redis->incr("iplog:u:$userid:p");
                 require "Modules/input/input_methods.php";
-                header('Content-Type: application/json');
-                $result = fast_input_post($redis,$userid);
+                $inputMethods = new InputMethods($redis);
+                $result = $inputMethods->post($userid);
                 // if ($result!="ok") apierrorlog($userid." ".$result);
+                header('Content-Type: application/json');
                 print $result;
                 if ($timelog) logrequest();
                 die;
@@ -82,13 +98,14 @@
 
         else if ($_GET['q']=="input/bulk") {
             //echo "ok"; die;
-            if ($redis->exists("writeapikey:$apikey")) {
-                $userid = $redis->get("writeapikey:$apikey");
+            $userid = $redis->get("writeapikey:$apikey");
+            if ($userid!==false) {
                 if ($iplog) $redis->incr("iplog:u:$userid:b");
                 require "Modules/input/input_methods.php";
-                header('Content-Type: application/json');
-                $result = fast_input_bulk($redis,$userid);
+                $inputMethods = new InputMethods($redis);
+                $result = $inputMethods->bulk($userid);
                 // if ($result!="ok") apierrorlog($userid." ".$result);
+                header('Content-Type: application/json');
                 print $result;
                 if ($timelog) logrequest();
                 die;
@@ -153,7 +170,7 @@
 
     if ($https_enable == true){
         if (!isset($_GET['q']) || $_GET['q']=="" || $_GET['q']=="user/login") {
-            if(!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == ""){
+            if(!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == "") {
                 // $redis->incr("httpsredirects");
                 $redirect = "https://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
                 // header("HTTP/1.1 301 Moved Permanently");
@@ -162,10 +179,6 @@
             }
         }
     }
-
-    // 1) Load settings and core scripts
-    require "core.php";
-    require "route.php";
 
     $path = get_application_path();
     
@@ -206,12 +219,8 @@
               exit();
         }
     } else {
-        $session = $user->emon_session_start();
+        if ($session===false) $session = $user->emon_session_start();
     }
-    
-
-    // 5) Get route and load controller
-    $route = new Route(get('q'));
 
     if (get('embed')==1) $embed = 1; else $embed = 0;
 
