@@ -6,6 +6,7 @@
 class RemotePHPFina
 {
     private $path;
+    private $authkey = "";
 
     public function __construct($path)
     {
@@ -15,7 +16,7 @@ class RemotePHPFina
     public function create($id,$options)
     {
         $interval = $options['interval'];
-        return file_get_contents($this->path."create?id=".$id."&interval=".$interval);
+        return file_get_contents($this->path."create?id=".$id."&interval=".$interval."&authkey=".$this->authkey);
     }
     
     public function post($id,$timestamp,$value)
@@ -30,10 +31,10 @@ class RemotePHPFina
         return $value;
     }
     
-    public function get_data_new($id,$start,$end,$interval,$skipmissing,$limitinterval)
+    public function get_data_new($id,$start,$end,$interval,$skipmissing,$limitinterval,$backup=false)
     {
         $out = "";
-        if ($source = @fopen($this->path."datanew?id=".$id."&start=".$start."&end=".$end."&interval=".$interval."&skipmissing=".$skipmissing."&limitinterval=".$limitinterval,'r'))
+        if ($source = @fopen($this->path."datanew?id=".$id."&start=".$start."&end=".$end."&interval=".$interval."&skipmissing=".$skipmissing."&limitinterval=".$limitinterval."&backup=".$backup."&authkey=".$this->authkey,'r'))
         {
             for (;;)
             {
@@ -48,7 +49,22 @@ class RemotePHPFina
     public function get_data_DMY($id,$start,$end,$mode,$timezone)
     {
         $out = "";
-        if ($source = @fopen($this->path."dataDMY?id=".$id."&start=".$start."&end=".$end."&mode=".$mode."&timezone=".$timezone,'r'))
+        if ($source = @fopen($this->path."dataDMY?id=".$id."&start=".$start."&end=".$end."&mode=".$mode."&timezone=".$timezone."&authkey=".$this->authkey,'r'))
+        {
+            for (;;)
+            {
+                $out .= fread($source,8192);
+                if (feof($source)) break;
+            }
+        }
+    
+        return json_decode($out);
+    }
+    
+    public function get_data_DMY_time_of_day($id,$start,$end,$mode,$timezone,$split)
+    {
+        $out = "";
+        if ($source = @fopen($this->path."dataDMYtimeofday?id=".$id."&start=".$start."&end=".$end."&mode=".$mode."&timezone=".$timezone."&split=".$split."&authkey=".$this->authkey,'r'))
         {
             for (;;)
             {
@@ -63,7 +79,7 @@ class RemotePHPFina
     public function get_average($id,$start,$end,$interval)
     {
         $out = "";
-        if ($source = @fopen($this->path."average?id=".$id."&start=".$start."&end=".$end."&interval=".$interval,'r'))
+        if ($source = @fopen($this->path."average?id=".$id."&start=".$start."&end=".$end."&interval=".$interval."&authkey=".$this->authkey,'r'))
         {
             for (;;)
             {
@@ -78,7 +94,7 @@ class RemotePHPFina
     public function get_average_DMY($id,$start,$end,$mode,$timezone)
     {
         $out = "";
-        if ($source = @fopen($this->path."averageDMY?id=".$id."&start=".$start."&end=".$end."&mode=".$mode."&timezone=".$timezone,'r'))
+        if ($source = @fopen($this->path."averageDMY?id=".$id."&start=".$start."&end=".$end."&mode=".$mode."&timezone=".$timezone."&authkey=".$this->authkey,'r'))
         {
             for (;;)
             {
@@ -92,7 +108,7 @@ class RemotePHPFina
     public function get_data($id,$start,$end,$interval)
     {
         $out = "";
-        if ($source = @fopen($this->path."data?id=".$id."&start=".$start."&end=".$end."&interval=".$interval,'r'))
+        if ($source = @fopen($this->path."data?id=".$id."&start=".$start."&end=".$end."&interval=".$interval."&authkey=".$this->authkey,'r'))
         {
             for (;;)
             {
@@ -108,7 +124,7 @@ class RemotePHPFina
 
     public function lastvalue($id)
     {
-        $lastvalue = json_decode(file_get_contents($this->path."lastvalue?id=".$id));
+        $lastvalue = json_decode(file_get_contents($this->path."lastvalue?id=".$id."&authkey=".$this->authkey));
         return array("time"=>$lastvalue->time, "value"=>$lastvalue->value);
     }
     
@@ -128,7 +144,7 @@ class RemotePHPFina
         // Write to output stream
         $target = @fopen( 'php://output', 'w' );
         
-        if ($source = @fopen($this->path."export?id=".$id."&start=".$start,'r'))
+        if ($source = @fopen($this->path."export?id=".$id."&start=".$start."&authkey=".$this->authkey,'r'))
         {
             for (;;)
             {
@@ -144,17 +160,17 @@ class RemotePHPFina
     
     public function delete($id)
     {
-        return file_get_contents($this->path."delete?id=".$id);
+        return file_get_contents($this->path."delete?id=".$id."&authkey=".$this->authkey);
     }
     
     public function get_feed_size($id)
     {
-        return file_get_contents($this->path."size?id=".$id);
+        return file_get_contents($this->path."size?id=".$id."&authkey=".$this->authkey);
     }
     
     public function get_meta($id)
     {
-        return json_decode(file_get_contents($this->path."meta?id=".$id));
+        return json_decode(file_get_contents($this->path."meta?id=".$id."&authkey=".$this->authkey));
     }
     
     public function csv_export($id,$start,$end,$interval,$usertimezone)
@@ -173,7 +189,7 @@ class RemotePHPFina
         // Write to output stream
         $target = @fopen( 'php://output', 'w' );
         
-        if ($source = @fopen($this->path."csvexport?id=".$id."&start=".$start."&end=".$end."&interval=".$interval."&usertimezone=".$usertimezone,'r'))
+        if ($source = @fopen($this->path."csvexport?id=".$id."&start=".$start."&end=".$end."&interval=".$interval."&usertimezone=".$usertimezone."&authkey=".$this->authkey,'r'))
         {
             for (;;)
             {

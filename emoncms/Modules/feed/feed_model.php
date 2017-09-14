@@ -187,16 +187,38 @@ class Feed
       
         $feeds = array();
         $feedids = $this->redis->sMembers("user:feeds:$userid");
+        
+        $pipe = $this->redis->multi(Redis::PIPELINE);
         foreach ($feedids as $id)
         {
-            $row = $this->redis->hGetAll("feed:$id");
-
-            $lastvalue = $this->get_timevalue($id);
+            $this->redis->hGetAll("feed:$id");
+            $this->redis->hmget("feed:lastvalue:$id",array('time','value'));
+        }
+        $result = $pipe->exec();
+        
+        for ($i=0; $i<count($result); $i+=2) {
+            $row = $result[$i];
+            $lastvalue = $result[$i+1];
             $row['time'] = strtotime($lastvalue['time']);
             $row['value'] = $lastvalue['value'];
             $feeds[] = $row;
         }
         
+        return $feeds;
+    }
+    
+    public function get_user_feeds_with_meta($userid)
+    {
+        $userid = (int) $userid;
+        $feeds = $this->get_user_feeds($userid);
+        for ($i=0; $i<count($feeds); $i++) {
+            $id = $feeds[$i]["id"];
+            if ($meta = $this->get_meta($id)) {
+                foreach ($meta as $meta_key=>$meta_val) {
+                    $feeds[$i][$meta_key] = $meta_val;
+                }
+            }
+        }
         return $feeds;
     }
     
@@ -418,13 +440,13 @@ class Feed
         return $value;
     }
 
-    public function get_data($feedid,$start,$end,$outinterval,$skipmissing,$limitinterval)
+    public function get_data($feedid,$start,$end,$outinterval,$skipmissing,$limitinterval,$backup=false)
     {
         $feedid = (int) $feedid;      
         if (!$this->exist($feedid)) return array('success'=>false, 'message'=>'Feed does not exist');
         $engine = $this->get_engine($feedid);
         $server = $this->get_server($feedid);
-        return $this->server[$server][$engine]->get_data_new($feedid,$start,$end,$outinterval,$skipmissing,$limitinterval);
+        return $this->server[$server][$engine]->get_data_new($feedid,$start,$end,$outinterval,$skipmissing,$limitinterval,$backup);
     }
     
     public function get_data_DMY($feedid,$start,$end,$mode)
@@ -440,6 +462,25 @@ class Feed
         $userid = $this->get_field($feedid,"userid");
         $timezone = $this->get_user_timezone($userid);
         $data = $this->server[$server][$engine]->get_data_DMY($feedid,$start,$end,$mode,$timezone);
+        return $data;
+    }
+    
+    public function get_data_DMY_time_of_day($feedid,$start,$end,$mode,$split)
+    {
+        $feedid = (int) $feedid;
+        if ($end<=$start) return array('success'=>false, 'message'=>"Request end time before start time");
+        if (!$this->exist($feedid)) return array('success'=>false, 'message'=>'Feed does not exist');
+        $engine = $this->get_engine($feedid);
+        $server = $this->get_server($feedid);
+        
+        if ($engine != Engine::PHPFINA) return array('success'=>false, 'message'=>"This request is only supported by PHPFina");
+        
+        // Call to engine get_data
+        global $session;
+        $userid = $this->get_field($feedid,"userid");
+        $timezone = $this->get_user_timezone($userid);
+            
+        $data = $this->server[$server][$engine]->get_data_DMY_time_of_day($feedid,$start,$end,$mode,$timezone,$split);
         return $data;
     }
     
@@ -623,6 +664,19 @@ class Feed
             'size'=>$row->size,
             'engine'=>$row->engine,
             'server'=>$row->server
+            ));
+            
+            // Last time and value
+            $id = $row->id;
+            $lastvalue = $this->get_timevalue_from_data($id);
+            
+            if (!isset($lastvalue['time']) || !isset($lastvalue['value'])) {
+                $this->log->warn("ERROR: Feed Model, No time or value for feed $id");
+            }
+            
+            $this->redis->hMset("feed:lastvalue:$id", array(
+                'value' => $lastvalue['value'], 
+                'time' => $lastvalue['time']
             ));
         }
     }

@@ -95,6 +95,24 @@ class User
         //----------------------------------------------------
         return $session;
     }
+    
+    public function get_id_from_apikey($apikey_in) 
+    {    
+        $apikey_in = $this->mysqli->real_escape_string($apikey_in);
+        
+        $result = $this->mysqli->query("SELECT id FROM users WHERE apikey_read='$apikey_in'");
+        if ($result->num_rows == 1) {
+            $row = $result->fetch_array();
+            return $row["id"];
+        } else {
+            $result = $this->mysqli->query("SELECT id, username FROM users WHERE apikey_write='$apikey_in'");
+            if ($result->num_rows == 1) {
+                $row = $result->fetch_array();
+                return $row["id"];
+            }
+        }
+        return false;
+    }
 
     public function emon_session_start()
     {
@@ -140,6 +158,7 @@ class User
         if (isset($_SESSION['lang'])) $session['lang'] = $_SESSION['lang']; else $session['lang'] = '';
         if (isset($_SESSION['username'])) $session['username'] = $_SESSION['username']; else $session['username'] = '';
         if (isset($_SESSION['cookielogin'])) $session['cookielogin'] = $_SESSION['cookielogin']; else $session['cookielogin'] = 0;
+        if (isset($_SESSION['startingpage'])) $session['startingpage'] = $_SESSION['startingpage']; else $session['startingpage'] = '';
 
         return $session;
     }
@@ -198,7 +217,7 @@ class User
         $username = $this->mysqli->real_escape_string($username);
         //$password = $this->mysqli->real_escape_string($password);
 
-        $result = $this->mysqli->query("SELECT id,password,admin,salt,language FROM users WHERE username = '$username'");
+        $result = $this->mysqli->query("SELECT id,password,admin,salt,language,startingpage FROM users WHERE username = '$username'");
 
         if ($result->num_rows < 1) return array('success'=>false, 'message'=>_("Username does not exist"));
 
@@ -218,7 +237,8 @@ class User
             $_SESSION['write'] = 1;
             $_SESSION['admin'] = $userData->admin;
             $_SESSION['lang'] = $userData->language;
-
+            $_SESSION['startingpage'] = $userData->startingpage;
+            
             if ($this->enable_rememberme) {
                 if ($remembermecheck==true) {
                     $this->rememberme->createCookie($userData->id);
@@ -227,7 +247,7 @@ class User
                 }
             }
 
-            return array('success'=>true, 'message'=>_("Login successful"));
+            return array('success'=>true, 'message'=>_("Login successful"), 'startingpage'=>$userData->startingpage);
         }
     }
 
@@ -257,7 +277,7 @@ class User
         }
         else
         {
-            return array('success'=>true, 'apikey_write'=>$userData->apikey_write, 'apikey_read'=>$userData->apikey_read);
+            return array('success'=>true, 'userid'=>$userData->id, 'apikey_write'=>$userData->apikey_write, 'apikey_read'=>$userData->apikey_read);
         }
     }
 
@@ -499,7 +519,7 @@ class User
     public function get($userid)
     {
         $userid = intval($userid);
-        $result = $this->mysqli->query("SELECT id,username,email,gravatar,name,location,timezone,language,bio,apikey_write,apikey_read FROM users WHERE id=$userid");
+        $result = $this->mysqli->query("SELECT id,username,email,gravatar,name,location,timezone,language,bio,apikey_write,apikey_read,startingpage FROM users WHERE id=$userid");
         $data = $result->fetch_object();
         
         return $data;
@@ -513,10 +533,18 @@ class User
         $name = preg_replace('/[^\w\s-.]/','',$data->name);
         $location = preg_replace('/[^\w\s-.]/','',$data->location);
         $timezone = preg_replace('/[^\w-.\\/_]/','',$data->timezone);
-        $language = preg_replace('/[^\w\s-.]/','',$data->language); $_SESSION['lang'] = $language;
         $bio = preg_replace('/[^\w\s-.]/','',$data->bio);
-
-        $result = $this->mysqli->query("UPDATE users SET gravatar = '$gravatar', name = '$name', location = '$location', timezone = '$timezone', language = '$language', bio = '$bio' WHERE id='$userid'");
+        $language = preg_replace('/[^\w\s-.]/','',$data->language); 
+        
+        $startingpage = preg_replace('/[^\p{N}\p{L}_\s-?#=\/]/u','',$data->startingpage);
+        
+        $_SESSION['lang'] = $language;
+        
+        $stmt = $this->mysqli->prepare("UPDATE users SET gravatar = ?, name = ?, location = ?, timezone = ?, language = ?, bio = ?, startingpage = ? WHERE id = ?");
+        $stmt->bind_param("sssssssi", $gravatar, $name, $location, $timezone, $language, $bio, $startingpage, $userid);
+        if (!$stmt->execute()) {
+            return array('success'=>false, 'message'=>_("Error updating user info"));
+        }
     }
 
     // Generates a new random read apikey

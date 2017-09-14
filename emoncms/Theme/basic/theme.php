@@ -10,6 +10,8 @@
   http://openenergymonitor.org
   */
   global $ltime,$path,$fullwidth,$menucollapses,$emoncms_version,$theme;
+  
+  $themecolor = "standard";
 ?>
 <html>
     <head>
@@ -27,15 +29,20 @@
         -->
         <link href="<?php echo $path; ?>Lib/bootstrap/css/bootstrap-combined.min.css" rel="stylesheet">
         
-        <link href="<?php echo $path; ?>Theme/<?php echo $theme; ?>/emon.css" rel="stylesheet">
+        <?php if ($themecolor=="blue") { ?>
+            <link href="<?php echo $path; ?>Theme/<?php echo $theme; ?>/emon-blue.css" rel="stylesheet">
+        <?php } else { ?>
+            <link href="<?php echo $path; ?>Theme/<?php echo $theme; ?>/emon-standard.css" rel="stylesheet">
+        <?php } ?>
+        
         <script type="text/javascript" src="<?php echo $path; ?>Lib/jquery-1.11.3.min.js"></script>
     </head>
     <body>
         <div id="wrap">
-        <div class="navbar navbar-inverse navbar-fixed-top">
+        
+        <div id="emoncms-navbar" class="navbar navbar-inverse navbar-fixed-top">
             <div class="navbar-inner">
-                <div class="container">
-<?php  if ($menucollapses) { ?>
+                    <?php  if ($menucollapses) { ?>
                     <style>
                         /* this is menu colapsed */
                         @media (max-width: 979px){
@@ -54,7 +61,7 @@
                     </button>
 
                     <div class="nav-collapse collapse">
-<?php } else { ?>
+                    <?php } else { ?>
                         <style>
                             @media (max-width: 1200px){
                               .menu-text {
@@ -73,18 +80,17 @@
                               }
                             }
                         </style>
-<?php } ?>
-                    <?php if (!isset($runmenu)) $runmenu = '';
-                        echo $mainmenu.$runmenu;
+                    <?php } ?>
+                    <?php
+                        echo $mainmenu;
                     ?>
-<?php
-    if ($menucollapses) {
-?>
+                    <?php
+                        if ($menucollapses) {
+                    ?>
                     </div>
-<?php
-    }
-?>
-                </div>
+                    <?php
+                        }
+                    ?>
             </div>
         </div>
 

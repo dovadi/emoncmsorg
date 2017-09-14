@@ -22,7 +22,8 @@
 <table class="table">
     <tr><td><?php echo _('JSON format:'); ?></td><td><a href="<?php echo $path; ?>input/post?json={power:200}"><?php echo $path; ?>input/post?json={power:200}</a></td></tr>
     <tr><td><?php echo _('CSV format:'); ?></td><td><a href="<?php echo $path; ?>input/post?csv=100,200,300"><?php echo $path; ?>input/post?csv=100,200,300</a></td></tr>
-    <tr><td><?php echo _('Assign inputs to a node group'); ?></td><td><a href="<?php echo $path; ?>input/post?node=1&csv=100,200,300"><?php echo $path; ?>input/post?<b>node=1</b>&csv=100,200,300</a></td></tr>
+    <tr><td><?php echo _('Assign inputs to a node group (numeric node name)'); ?></td><td><a href="<?php echo $path; ?>input/post?node=1&csv=100,200,300"><?php echo $path; ?>input/post?<b>node=1</b>&csv=100,200,300</a></td></tr>
+    <tr><td><?php echo _('Assign inputs to a node group (alpha-numeric node name)'); ?></td><td><a href="<?php echo $path; ?>input/post?node=emontx&csv=100,200,300"><?php echo $path; ?>input/post?<b>node=emontx</b>&csv=100,200,300</a></td></tr>
     <tr><td><?php echo _('Set the input entry time manually'); ?></td><td><a href="<?php echo $path; ?>input/post?time=<?php echo time(); ?>&node=1&csv=100,200,300"><?php echo $path; ?>input/post?<b>time=<?php echo time(); ?></b>&node=1&csv=100,200,300</a></td></tr>
 </table>
 
@@ -53,7 +54,7 @@
 <p><b><?php echo _('Input actions'); ?></b>
 <table class="table">
 <tr><td><?php echo _('List of inputs'); ?></td><td><a href="<?php echo $path; ?>input/list"><?php echo $path; ?>input/list</a></td></tr>
-<tr><td><?php echo _('Delete an input'); ?></td><td><a href="<?php echo $path; ?>input/delete?inputid=1"><?php echo $path; ?>input/delete?id=1</a></td></tr>
+<tr><td><?php echo _('Delete an input'); ?></td><td><a href="<?php echo $path; ?>input/delete?id=1"><?php echo $path; ?>input/delete?id=1</a></td></tr>
 </table>
 
 <p><b><?php echo _('Input process actions'); ?></b></p>

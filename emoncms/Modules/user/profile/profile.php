@@ -15,14 +15,15 @@ defined('EMONCMS_EXEC') or die('Restricted access');
 
 global $path, $session, $redis;
 $languages = array();
+$v=1;
 
 ?>
 
-<script type="text/javascript" src="<?php echo $path; ?>Modules/user/profile/md5.js"></script>
-<script type="text/javascript" src="<?php echo $path; ?>Lib/misc/qrcode.js"></script>
-<script type="text/javascript" src="<?php echo $path; ?>Lib/misc/clipboard.js"></script>
-<script type="text/javascript" src="<?php echo $path; ?>Modules/user/user.js"></script>
-<script type="text/javascript" src="<?php echo $path; ?>Lib/listjs/list.js"></script>
+<script type="text/javascript" src="<?php echo $path; ?>Modules/user/profile/md5.js?v=<?php echo $v; ?>"></script>
+<script type="text/javascript" src="<?php echo $path; ?>Lib/misc/qrcode.js?v=<?php echo $v; ?>"></script>
+<script type="text/javascript" src="<?php echo $path; ?>Lib/misc/clipboard.js?v=<?php echo $v; ?>"></script>
+<script type="text/javascript" src="<?php echo $path; ?>Modules/user/user.js?v=<?php echo $v; ?>"></script>
+<script type="text/javascript" src="<?php echo $path; ?>Lib/listjs/list.js?v=<?php echo $v; ?>"></script>
 
 <div class="row">
 
@@ -155,7 +156,8 @@ $languages = array();
         'location':{'title':"<?php echo _('Location'); ?>", 'type':'text'},
         'timezone':{'title':"<?php echo _('Timezone'); ?>", 'type':'timezone'},
         // 'language':{'title':"<?php echo _('Language'); ?>", 'type':'select', 'options':lang},
-        'bio':{'title':"<?php echo _('Bio'); ?>", 'type':'text'}
+        'bio':{'title':"<?php echo _('Bio'); ?>", 'type':'text'},
+        'startingpage':{'title':"<?php echo _('Starting page'); ?>", 'type':'text'}
     }
 
     $.ajax({ url: path+"user/gettimezones.json", dataType: 'json', async: true, success: function(result) {

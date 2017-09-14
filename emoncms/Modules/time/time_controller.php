@@ -18,8 +18,6 @@ function time_controller()
 
     $result = false;
 
-    if (!isset($session['read'])) return array('content'=>false);
-
     if ($route->action == 'local' && $session['read'])
     {
         $userid = $session['userid'];
@@ -35,7 +33,7 @@ function time_controller()
         }
     }
 
-    if ($route->action == 'server' && $session['read'])
+    if ($route->action == 'server')
     {
         $result = 't'.date('H,i,s');
     }

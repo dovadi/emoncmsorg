@@ -262,7 +262,7 @@ class Process
         // only update if last datapoint was less than 2 hour old
         // this is to reduce the effect of monitor down time on creating
         // often large kwh readings.
-        if ($last_time && (time()-$last_time)<7200)
+        if ($last_time && ($time_now-$last_time)<7200)
         {
             // kWh calculation
             $time_elapsed = ($time_now - $last_time);
@@ -299,7 +299,7 @@ class Process
         $current_slot = $this->getstartday($time_now);
         $last_slot = $this->getstartday($last_time);    
 
-        if ($last_time && ((time()-$last_time)<7200)) {
+        if ($last_time && (($time_now-$last_time)<7200)) {
             // kWh calculation
             $time_elapsed = ($time_now - $last_time);
             $kwh_inc = ($time_elapsed * $value) / 3600000.0;
@@ -490,7 +490,7 @@ class Process
         $last_time = strtotime($lastvalue['time']);
 
         // kWh calculation
-        if ((time()-$last_time)<7200) {
+        if (($time_now-$last_time)<7200) {
             $time_elapsed = ($time_now - $last_time);
             $kwh_inc = ($time_elapsed * $value) / 3600000;
         } else {

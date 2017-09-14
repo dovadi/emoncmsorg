@@ -72,6 +72,13 @@ var feed = {
     $.ajax({ url: path+"feed/set.json", data: "id="+id+"&fields="+JSON.stringify(fields), async: false, success: function(data){} });
     return result;
   },
+  
+  'insert':function(id, value)
+  {
+    var result = {};
+    $.ajax({ url: path+"feed/insert.json", data: "id="+id+"&value="+value, async: false, success: function(data){} });
+    return result;
+  },
 
   'remove':function(id)
   {

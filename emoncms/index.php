@@ -70,9 +70,11 @@
             if ($redis->exists("writeapikey:$apikey")) {
                 $userid = $redis->get("writeapikey:$apikey");
                 if ($iplog) $redis->incr("iplog:u:$userid:p");
-                require "fast_input.php";
+                require "Modules/input/input_methods.php";
                 header('Content-Type: application/json');
-                print fast_input_post($redis,$userid);
+                $result = fast_input_post($redis,$userid);
+                // if ($result!="ok") apierrorlog($userid." ".$result);
+                print $result;
                 if ($timelog) logrequest();
                 die;
             }
@@ -83,9 +85,11 @@
             if ($redis->exists("writeapikey:$apikey")) {
                 $userid = $redis->get("writeapikey:$apikey");
                 if ($iplog) $redis->incr("iplog:u:$userid:b");
-                require "fast_input.php";
+                require "Modules/input/input_methods.php";
                 header('Content-Type: application/json');
-                print fast_input_bulk($redis,$userid);
+                $result = fast_input_bulk($redis,$userid);
+                // if ($result!="ok") apierrorlog($userid." ".$result);
+                print $result;
                 if ($timelog) logrequest();
                 die;
             }
@@ -123,23 +127,24 @@
             else if ($redis->exists("readapikey:$apikey")) { $userid = $redis->get("readapikey:$apikey"); }
 
             if ($userid>0) {
-
-                $feedids = (array) (explode(",",($_GET['ids'])));
-                $feeds = array();
-                for ($i=0; $i<count($feedids); $i++) {
-                    $feedid = (int) $feedids[$i];
-                    $feeds[$i] = false;
-                    if ($redis->exists("feed:$feedid")) {
-                        $fuid = (int) $redis->hget("feed:$feedid","userid");
-                        if ($userid==$fuid) {
-                            $feeds[$i] = 1 * $redis->hget("feed:lastvalue:$feedid",'value');
+                if (isset($_GET['ids'])) {
+                    $feedids = (array) (explode(",",($_GET['ids'])));
+                    $feeds = array();
+                    for ($i=0; $i<count($feedids); $i++) {
+                        $feedid = (int) $feedids[$i];
+                        $feeds[$i] = false;
+                        if ($redis->exists("feed:$feedid")) {
+                            $fuid = (int) $redis->hget("feed:$feedid","userid");
+                            if ($userid==$fuid) {
+                                $feeds[$i] = 1 * $redis->hget("feed:lastvalue:$feedid",'value');
+                            }
                         }
                     }
+                    header('Content-Type: application/json');
+                    print json_encode($feeds);
+                    if ($iplog) $redis->incr("iplog:u:$userid:f");
+                    if ($timelog) logrequest();
                 }
-                header('Content-Type: application/json');
-                print json_encode($feeds);
-                if ($iplog) $redis->incr("iplog:u:$userid:f");
-                if ($timelog) logrequest();
                 die;
             }
         }
@@ -222,9 +227,15 @@
         }
         else // Authenticated defaults
         {
-            $route->controller = $default_controller_auth;
-            $route->action = $default_action_auth;
-            $route->subaction = "";
+            if (isset($session["startingpage"]) && $session["startingpage"]!="") {
+                header('Location: '.$session["startingpage"]);
+                die;
+            } else {
+                // Authenticated defaults
+                $route->controller = $default_controller_auth;
+                $route->action = $default_action_auth;
+                $route->subaction = "";
+            }
         }
     }
 
@@ -347,6 +358,12 @@
         
         fwrite($fh,time()."\t$seconds\t$t\t".$_GET['q']."\n");
         fclose($fh);
+    }
+    
+    function apierrorlog($error) {
+        //$fh = fopen("/home/username/apierror.log","a");
+        //fwrite($fh,$error."\n");
+        //fclose($fh);
     }
     
     //if (isset($session['userid'])) {

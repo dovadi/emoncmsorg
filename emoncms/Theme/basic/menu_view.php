@@ -10,6 +10,7 @@
     global $path, $session, $menu;
     if (!isset($session['profile'])) $session['profile'] = 0;
 
+    // Example how to add a fixed menu item:
     // $menu['dropdownconfig'][] = array('name'=>'Documentation', 'icon'=>'icon-book', 'path'=>"docs", 'session'=>"write", 'order' => 60,'divider' => true);
 
     usort($menu['left'], "menu_sort");
@@ -41,7 +42,7 @@
                 if ($i > 0) {
                     $out .= '<li class="dropdown' . ($subactive ? " active" : "") . (isset($item['class']) ? " ".$item['class'] : "") . '">';
                     $out .= '<a href="#" class="dropdown-toggle" data-toggle="dropdown">' . drawNameIcon($item,false) . '<b class="caret"></b></a>';
-                    $out .= '<ul class="dropdown-menu">';
+                    $out .= '<ul class="dropdown-menu scrollable-menu">';
                     $out .= $outdrop;
                     $out .= '</ul></li>';
                 }   
@@ -61,15 +62,17 @@
         $desc = false;
         $icon = false;
         $published = false;
+        $divid = "";
         if (isset($item['name'])) $name = $item['name'];
         if (isset($item['desc'])) $desc = $item['desc'];
         if (isset($item['icon'])) $icon = $item['icon'];
         if (isset($item['published'])) $published = $item['published'];
+        if (isset($item['id'])) $divid = "id='".$item['id']."'";
 
         $title = ($desc ? $desc : $name);
         if($name && $published) $name = "<b>".$name."</b>";
         
-        $out = "<div style='display: inline'>";
+        $out = "<div $divid style='display: inline'>";
         if ($icon) $out .= "<i class='".$icon."'" . ($title ? " title='".$title."'" : "") . "></i>";
         if ($name) {
             if ($alwaysshowname || !$icon) { 

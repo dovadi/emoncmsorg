@@ -76,6 +76,7 @@ function fast_input_post($redis,$userid)
         } elseif ($uid>=$IQL["L3"] && $uid<$IQL["L4"]) {
             $redis->rpush('inputbuffer4',$str);
         } elseif ($uid>=$IQL["L4"] && $uid<$IQL["L5"]) {
+            //if ($uid==16477) return "ok";
             $redis->rpush('inputbuffer5',$str);
         } else {
             $redis->rpush('inputbuffer6',$str);
@@ -122,17 +123,22 @@ function fast_input_bulk($redis,$userid)
 {
     $redis->incr("fiveseconds:inputhits");
     
-    if (!isset($_GET['data']) && isset($_POST['data'])) {
+    $data = array();
+    if (isset($_POST['data'])) {
         $data = json_decode($_POST['data']);
-    } else {
-        $data = json_decode($_GET['data']);
+        if ($data===null) return "Error: Format error, json string supplied is not valid POST";
     }
-    if ($data==null) return "Error: Format error, json string supplied is not valid";
+
+    if (isset($_GET['data'])) {
+        $data = json_decode($_GET['data']);
+        if ($data===null) return "Error: Format error, json string supplied is not valid GET";
+    }
 
     $dropped = 0; $droppednegative = 0;
     
     $len = count($data);
-    if ($len==0) return "Error: Format error, json string supplied is not valid";
+    if ($len==0) return "ok"; // empty data return ok
+    
     if (!isset($data[$len-1][0])) return "Error: Format error, last item in bulk data does not contain any data";
 
     // Sent at mode: input/bulk.json?data=[[45,16,1137],[50,17,1437,3164],[55,19,1412,3077]]&sentat=60
@@ -207,6 +213,7 @@ function fast_input_bulk($redis,$userid)
                 } elseif ($uid>=$IQL["L3"] && $uid<$IQL["L4"]) {
                     $redis->rpush('inputbuffer4',$str);
                 } elseif ($uid>=$IQL["L4"] && $uid<$IQL["L5"]) {
+                    //if ($uid==16477) return "ok";
                     $redis->rpush('inputbuffer5',$str);
                 } else {
                     $redis->rpush('inputbuffer6',$str);
@@ -219,4 +226,3 @@ function fast_input_bulk($redis,$userid)
     }
     return "ok";
 }
-

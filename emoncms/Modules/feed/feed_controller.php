@@ -40,7 +40,8 @@ function feed_controller()
             if (isset($_GET['userid']) && $session['read'] && $_GET['userid'] == $session['userid']) $result = $feed->get_user_feeds($session['userid']);
             if (isset($_GET['userid']) && $session['read'] && $_GET['userid'] != $session['userid']) $result = $feed->get_user_public_feeds(get('userid'));
             if (isset($_GET['userid']) && !$session['read']) $result = $feed->get_user_public_feeds(get('userid'));
-
+        } elseif ($route->action == "listwithmeta" && $session['read']) {
+            $result = $feed->get_user_feeds_with_meta($session['userid']);
         } elseif ($route->action == "getid" && $session['read']) {
             $redis->incr("fiveseconds:getdatahits");
             $result = $feed->get_id($session['userid'],get('name'));
@@ -86,9 +87,17 @@ function feed_controller()
                         if (isset($_GET['dp'])) $interval = (int)(((get('end') - get('start')) / ((int)$_GET['dp']))*0.001);
                         
                         if (isset($_GET['interval'])) {
-                            $result = $feed->get_data($feedid,get('start'),get('end'),get('interval'),$skipmissing,$limitinterval);
+                        
+                            $backup = false;
+                            if (isset($_GET['backup']) && $_GET['backup']=="true") $backup = true;
+                        
+                            $result = $feed->get_data($feedid,get('start'),get('end'),get('interval'),$skipmissing,$limitinterval,$backup);
                         } else if (isset($_GET['mode'])) {
-                            $result = $feed->get_data_DMY($feedid,get('start'),get('end'),get('mode'));
+                            if (isset($_GET['split'])) {
+                                $result = $feed->get_data_DMY_time_of_day($feedid,get('start'),get('end'),get('mode'),get('split'));
+                            } else {
+                                $result = $feed->get_data_DMY($feedid,get('start'),get('end'),get('mode'));
+                            }
                         }
                     }
                     else if ($route->action == 'average') {
