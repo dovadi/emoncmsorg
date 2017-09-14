@@ -27,7 +27,7 @@ option.select-hr { border-bottom: 1px dotted #000; }
 </style>
 
 <br>
-<div id="apihelphead"><div style="float:right;"><a href="<?php echo $path; ?>site/api#input"><?php echo _('Input API Help'); ?></a></div></div>
+<div id="apihelphead"><div style="float:right;"><a href="<?php echo $path; ?>input/api"><?php echo _('Input API Help'); ?></a></div></div>
 
 <div class="container">
     <div id="localheading"><h2><?php echo _('Inputs'); ?></h2></div>

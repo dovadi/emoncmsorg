@@ -62,7 +62,7 @@
     $redis->incr('fiveseconds:totalhits');
 
     // 5) Get route and load controller
-    $route = new Route(get('q'));
+    $route = new Route(get('q'), server('DOCUMENT_ROOT'), server('REQUEST_METHOD'));
     
     // Load get/post/encrypted parameters - only used by input/post and input/bulk API's
     $session = false;
