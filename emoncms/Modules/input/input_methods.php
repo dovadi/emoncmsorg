@@ -31,11 +31,12 @@ class InputMethods
         // Default nodeid is zero
         $nodeid = 0;
         
-        if ($route->subaction) {
-            $nodeid = $route->subaction;
-        } else if ($param->exists('node')) {
+        if ($param->exists('node')) {
             $nodeid = $param->val('node');
+        } else if ($route->subaction) {
+            $nodeid = $route->subaction;
         }
+        
         if (preg_replace('/[^\p{N}\p{L}_\s-.]/u','',$nodeid)!=$nodeid) return "Error: invalid node name";
         if (strlen($nodeid)>16) return "Error: node name must be 16 characters or less";
 

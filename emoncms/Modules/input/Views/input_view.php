@@ -297,4 +297,4 @@ function load_all()
    
     processlist_ui.events();
 }
-</script>
+</script>s

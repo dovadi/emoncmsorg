@@ -61,6 +61,14 @@
     }
     $redis->incr('fiveseconds:totalhits');
 
+
+    // API corrections
+    if (isset($_GET['q'])) {
+        if ($_GET['q']=="api/post.json") $_GET['q'] = "input/post";
+        else if ($_GET['q']=="api/post") $_GET['q'] = "input/post";
+        else if ($_GET['q']=="emoncms/input/post.json") $_GET['q'] = "input/post";
+        else if ($_GET['q']=="emoncms/input/bulk.json") $_GET['q'] = "input/bulk";
+    }
     // 5) Get route and load controller
     $route = new Route(get('q'), server('DOCUMENT_ROOT'), server('REQUEST_METHOD'));
     
@@ -74,11 +82,7 @@
     if (isset($_GET['q']) && $apikey!==false) {
     
         if ($_GET['q']=="input/post.json") $_GET['q'] = "input/post";
-        if ($_GET['q']=="input/bulk.json") $_GET['q'] = "input/bulk";
-        if ($_GET['q']=="api/post.json") $_GET['q'] = "input/post";
-        if ($_GET['q']=="api/post") $_GET['q'] = "input/post";
-        if ($_GET['q']=="emoncms/input/post.json") $_GET['q'] = "input/post";
-        if ($_GET['q']=="emoncms/input/bulk.json") $_GET['q'] = "input/bulk";
+        else if ($_GET['q']=="input/bulk.json") $_GET['q'] = "input/bulk";
 
         if ($_GET['q']=="input/post") {
             //echo "ok"; die;
@@ -88,7 +92,7 @@
                 require "Modules/input/input_methods.php";
                 $inputMethods = new InputMethods($redis);
                 $result = $inputMethods->post($userid);
-                // if ($result!="ok") apierrorlog($userid." ".$result);
+                // if ($result!="ok") apierrorlog("post: ".$userid." ".$result." ".json_encode($_GET));
                 header('Content-Type: application/json');
                 print $result;
                 if ($timelog) logrequest();
@@ -104,7 +108,7 @@
                 require "Modules/input/input_methods.php";
                 $inputMethods = new InputMethods($redis);
                 $result = $inputMethods->bulk($userid);
-                // if ($result!="ok") apierrorlog($userid." ".$result);
+                // if ($result!="ok") apierrorlog("post: ".$userid." ".$result." ".json_encode($_GET));
                 header('Content-Type: application/json');
                 print $result;
                 if ($timelog) logrequest();
@@ -247,10 +251,6 @@
             }
         }
     }
-
-    if ($route->controller == 'api') $route->controller = 'input';
-    if ($route->controller == 'input' && $route->action == 'post') $route->format = 'json';
-    if ($route->controller == 'input' && $route->action == 'bulk') $route->format = 'json';
 
     // 6) Load the main page controller
     $output = controller($route->controller);

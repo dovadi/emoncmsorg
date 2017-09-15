@@ -32,6 +32,10 @@ $v=1;
 
         <div id="account">
             <div class="account-item">
+                <span class="muted"><?php echo _('User ID'); ?></span><br><span class="userid"></span>
+            </div>
+            
+            <div class="account-item">
                 <span class="muted"><?php echo _('Username'); ?></span>
                 <span id="username-view"><br><span class="username"></span> <a id="edit-username" style="float:right"><?php echo _('Edit'); ?></a></span>
                 <div id="edit-username-form" class="input-append" style="display:none">
@@ -176,6 +180,7 @@ $v=1;
     //------------------------------------------------------
     // Username
     //------------------------------------------------------
+    $(".userid").html(list.data['id']);
     $(".username").html(list.data['username']);
     $("#input-username").val(list.data['username']);
 

@@ -65,7 +65,7 @@ class Param
             // Fetch user
             $apikey = $this->redis->hget("user:$userid","apikey_write");
             if ($apikey===false) { echo "User not found"; die; }
-
+            
             // Fetch encrypted data from POST body
             $base64EncryptedData = file_get_contents('php://input');
             if ($base64EncryptedData=="") {echo "no content in post body"; die; }
@@ -110,4 +110,38 @@ class Param
     {
         if (isset($this->params[$index])) return true; else return false;
     }  
+}
+
+function hex2bin($hexstr) 
+{ 
+    $n = strlen($hexstr); 
+    $sbin="";   
+    $i=0; 
+    while($i<$n) 
+    {       
+        $a = substr($hexstr,$i,2);           
+        $c = pack("H*",$a); 
+        if ($i==0){$sbin=$c;} 
+        else {$sbin.=$c;} 
+        $i+=2; 
+    } 
+    return $sbin; 
+} 
+
+function hash_equals($str1, $str2)
+{
+    if(strlen($str1) != strlen($str2))
+    {
+        return false;
+    }
+    else
+    {
+        $res = $str1 ^ $str2;
+        $ret = 0;
+        for($i = strlen($res) - 1; $i >= 0; $i--)
+        {
+            $ret |= ord($res[$i]);
+        }
+        return !$ret;
+    }
 }

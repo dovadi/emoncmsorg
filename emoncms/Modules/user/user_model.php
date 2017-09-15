@@ -212,7 +212,7 @@ class User
         $username = $this->mysqli->real_escape_string($username);
         //$password = $this->mysqli->real_escape_string($password);
 
-        $result = $this->mysqli->query("SELECT id,password,admin,salt,language,startingpage FROM users WHERE username = '$username'");
+        $result = $this->mysqli->query("SELECT id,password,admin,salt,language,startingpage,apikey_write FROM users WHERE username = '$username'");
 
         if ($result->num_rows < 1) return array('success'=>false, 'message'=>_("Username does not exist"));
 
@@ -241,6 +241,8 @@ class User
                     $this->rememberme->clearCookie();
                 }
             }
+            
+            $this->redis->hmset("user:".$userData->id,array('apikey_write'=>$userData->apikey_write));
 
             return array('success'=>true, 'message'=>_("Login successful"), 'startingpage'=>$userData->startingpage);
         }
