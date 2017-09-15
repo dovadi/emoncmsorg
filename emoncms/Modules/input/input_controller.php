@@ -45,12 +45,12 @@ function input_controller()
     $inputMethods = new InputMethods($redis);
 
     // Change default route to json
-    $route->format = 'json';
+    $route->format = "json"; 
 
     // ------------------------------------------------------------------------
     // input/post
     // ------------------------------------------------------------------------
-    if ($route->action == 'post') {
+    if ($route->action == "post") {
         $result = $inputMethods->post($session['userid']);
         if ($result=="ok") {
             if ($param->exists('fulljson')) $result = '{"success": true}';
@@ -149,11 +149,11 @@ function input_controller()
     // HTML Web pages
     // -------------------------------------------------------------------------
     else if ($route->action == 'api') {
-        $route->format = 'html';
+        $route->format = "html";
         $result = view("Modules/input/Views/input_api.php", array());
-    }
-    else if ($route->action == 'view') {
-        $route->format = 'html';
+        
+    } else if ($route->action == 'view') {
+        $route->format = "html";
         $result =  view("Modules/input/Views/input_view.php", array());
     }
 
