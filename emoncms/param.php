@@ -112,36 +112,42 @@ class Param
     }  
 }
 
-function hex2bin($hexstr) 
-{ 
-    $n = strlen($hexstr); 
-    $sbin="";   
-    $i=0; 
-    while($i<$n) 
-    {       
-        $a = substr($hexstr,$i,2);           
-        $c = pack("H*",$a); 
-        if ($i==0){$sbin=$c;} 
-        else {$sbin.=$c;} 
-        $i+=2; 
-    } 
-    return $sbin; 
-} 
-
-function hash_equals($str1, $str2)
+if (!function_exists('hex2bin')) 
 {
-    if(strlen($str1) != strlen($str2))
-    {
-        return false;
-    }
-    else
-    {
-        $res = $str1 ^ $str2;
-        $ret = 0;
-        for($i = strlen($res) - 1; $i >= 0; $i--)
-        {
-            $ret |= ord($res[$i]);
-        }
-        return !$ret;
-    }
+  function hex2bin($hexstr) 
+  { 
+      $n = strlen($hexstr); 
+      $sbin="";   
+      $i=0; 
+      while($i<$n) 
+      {       
+          $a = substr($hexstr,$i,2);           
+          $c = pack("H*",$a); 
+          if ($i==0){$sbin=$c;} 
+          else {$sbin.=$c;} 
+          $i+=2; 
+      } 
+      return $sbin; 
+  } 
+}
+
+if (!function_exists('hash_equals')) 
+{
+  function hash_equals($str1, $str2)
+  {
+      if(strlen($str1) != strlen($str2))
+      {
+          return false;
+      }
+      else
+      {
+          $res = $str1 ^ $str2;
+          $ret = 0;
+          for($i = strlen($res) - 1; $i >= 0; $i--)
+          {
+              $ret |= ord($res[$i]);
+          }
+          return !$ret;
+      }
+  }
 }
