@@ -1,0 +1,27 @@
+data.redis :
+  image : nanobox/redis:3.2
+data.mysql:
+  image: nanobox/mysql:5.6
+
+run.config:
+  # install php and associated runtimes
+  extra_packages:
+    - php70-redis-3.1.4
+
+  engine: php
+  # php engine configuration (php version, extensions, etc)
+  engine.config:
+
+    # sets the php version to 7.0
+    runtime: php-7.0
+    display_errors: 'stderr'
+ 
+    extensions:
+      - session
+      - redis
+      - mysqli
+      - gettext
+      - ctype
+      
+    webserver: 'apache'
+
