@@ -23,5 +23,7 @@ run.config:
       - gettext
       - ctype
       - iconv # Needed for composer, see https://github.com/symfony/polyfill/issues/45
+      - dio
+      - mosquitto
 
     webserver: 'apache'
