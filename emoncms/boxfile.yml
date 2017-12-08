@@ -15,13 +15,13 @@ run.config:
     # sets the php version to 7.0
     runtime: php-7.0
     display_errors: 'stderr'
- 
+
     extensions:
-      - session
+      - session # Needed in order to have the Redis extension working
       - redis
       - mysqli
       - gettext
       - ctype
-      
-    webserver: 'apache'
+      - iconv # Needed for composer, see https://github.com/symfony/polyfill/issues/45
 
+    webserver: 'apache'
