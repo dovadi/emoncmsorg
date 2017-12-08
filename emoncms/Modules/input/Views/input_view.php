@@ -31,12 +31,12 @@ option.select-hr { border-bottom: 1px dotted #000; }
 
 <div class="container">
     <div id="localheading"><h2><?php echo _('Inputs'); ?></h2></div>
-    
+
     <div id="processlist-ui" style="padding:20px; background-color:#efefef; display:none">
-    
+
     <div style="font-size:30px; padding-bottom:20px; padding-top:18px"><b><span id="inputname"></span></b> config</div>
     <p><?php echo _('Input processes are executed sequentially with the result being passed back for further processing by the next processor in the input processing list.'); ?></p>
-    
+
         <table class="table">
 
             <tr>
@@ -69,7 +69,7 @@ option.select-hr { border-bottom: 1px dotted #000; }
 
                     <span id="type-feed">
                         <select id="feed-select" style="width:140px;"></select>
-                        
+
                         <input type="text" id="feed-name" style="width:150px;" placeholder="Feed name..." />
                         <input type="hidden" id="feed-tag"/>
 
@@ -97,7 +97,7 @@ option.select-hr { border-bottom: 1px dotted #000; }
                             <option value=1800>30 mins</option>
                             <option value=3600>1 hour</option>
                         </select>
-                        
+
                     </span>
                     <button id="process-add" class="btn btn-info"><?php echo _('Add'); ?></button>
                 </div>
@@ -109,7 +109,7 @@ option.select-hr { border-bottom: 1px dotted #000; }
         </table>
     </div>
     <br>
-    
+
     <div id="table"></div>
 
     <div id="noinputs" class="alert alert-block hide">
@@ -123,7 +123,7 @@ option.select-hr { border-bottom: 1px dotted #000; }
 <script>
 
     var path = "<?php echo $path; ?>";
-    
+
     var firstrun = true;
     var assoc_inputs = {};
 
@@ -156,7 +156,7 @@ option.select-hr { border-bottom: 1px dotted #000; }
     function update()
     {
         $.ajax({ url: path+"input/list.json", dataType: 'json', async: true, success: function(data) {
-        
+
             table.data = data;
             table.draw();
             if (table.data.length != 0) {
@@ -168,7 +168,7 @@ option.select-hr { border-bottom: 1px dotted #000; }
                 $("#localheading").hide();
                 $("#apihelphead").hide();
             }
-            
+
             if (firstrun) {
                 firstrun = false;
                 load_all();
@@ -191,18 +191,18 @@ option.select-hr { border-bottom: 1px dotted #000; }
         input.remove(id);
         update();
     });
-    
-    
+
+
 //------------------------------------------------------------------------------------------------------------------------------------
 // Process list UI js
 //------------------------------------------------------------------------------------------------------------------------------------
- 
+
     $("#table").on('click', '.icon-wrench', function() {
-        
+
         var i = table.data[$(this).attr('row')];
         console.log(i);
         processlist_ui.inputid = i.id;
-        
+
         var processlist = [];
         if (i.processList!=null && i.processList!="")
         {
@@ -213,10 +213,10 @@ option.select-hr { border-bottom: 1px dotted #000; }
                 processlist.push(process);
             }
         }
-        
+
         processlist_ui.variableprocesslist = processlist;
         processlist_ui.draw();
-        
+
         // SET INPUT NAME
         var inputname = "";
         if (processlist_ui.inputlist[processlist_ui.inputid].description!="") {
@@ -226,14 +226,14 @@ option.select-hr { border-bottom: 1px dotted #000; }
             inputname = processlist_ui.inputlist[processlist_ui.inputid].name;
             $("#feed-name").val("node:"+processlist_ui.inputlist[processlist_ui.inputid].nodeid+":"+inputname);
         }
-        
+
         $("#inputname").html("Node"+processlist_ui.inputlist[processlist_ui.inputid].nodeid+": "+inputname);
-        
+
         $("#feed-tag").val("Node:"+processlist_ui.inputlist[processlist_ui.inputid].nodeid);
-        
+
         $("#processlist-ui").show();
         window.scrollTo(0,0);
-        
+
     });
 
 function load_all()
@@ -241,7 +241,7 @@ function load_all()
     for (z in table.data) assoc_inputs[table.data[z].id] = table.data[z];
     console.log(assoc_inputs);
     processlist_ui.inputlist = assoc_inputs;
-    
+
     // Inputlist
     var out = "";
     for (i in processlist_ui.inputlist) {
@@ -249,12 +249,12 @@ function load_all()
       out += "<option value="+input.id+">Node "+input.nodeid+":"+input.name+" "+input.description+"</option>";
     }
     $("#input-select").html(out);
-    
+
     $.ajax({ url: path+"feed/list.json", dataType: 'json', async: true, success: function(result) {
-        
+
         var feeds = {};
         for (z in result) feeds[result[z].id] = result[z];
-        
+
         processlist_ui.feedlist = feeds;
         // Feedlist
         var out = "<option value=-1>CREATE NEW:</option>";
@@ -263,7 +263,7 @@ function load_all()
         }
         $("#feed-select").html(out);
     }});
-    
+
     $.ajax({ url: path+"input/getallprocesses.json", async: true, dataType: 'json', success: function(result){
         processlist_ui.processlist = result;
         var processgroups = [];
@@ -290,11 +290,11 @@ function load_all()
             out += "</optgroup>";
         }
         $("#process-select").html(out);
-        
+
         $("#description").html(process_info[1]);
         processlist_ui.showfeedoptions(1);
     }});
-   
+
     processlist_ui.events();
 }
-</script>s
+</script>
